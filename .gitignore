@@ -1,0 +1,28 @@
+#ignore this folder
+junk/
+
+#ignore this file type
+.DS_Store
+package-lock.json
+
+#ignore this folder which store image files for metadata production usage
+imageAssets/
+
+#ignore this folder
+**/flash-briefing/speechAssets/audio-alexa
+
+#ignore this file type in this folder
+*.mp3
+*.m4a
+*.pkf
+*.wav
+*package.json
+
+#ignore this folder [npm install --save alexa-sdk]
+skill/src/fact.js
+skill/src/greeting.js
+skill/src/youtube-data.js
+node_modules/
+
+#flashbriefing
+flash-briefing

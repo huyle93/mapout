@@ -1,0 +1,122 @@
+AMAZON.StopIntent No
+AMAZON.StopIntent Bye
+AMAZON.StopIntent Bye Now
+AMAZON.StopIntent I am good
+AMAZON.StopIntent Ok thanks
+AMAZON.StopIntent Nope
+AMAZON.StopIntent Ok Bye
+AMAZON.StopIntent Okay Bye
+AMAZON.StopIntent exit
+AMAZON.StopIntent that is it
+AMAZON.StopIntent that's it
+AMAZON.StopIntent Alexa Stop
+AMAZON.StopIntent Alexa Bye
+AMAZON.StopIntent Alexa Bye Now
+AMAZON.StopIntent Alexa Exit
+
+AMAZON.HelpIntent Tell me
+AMAZON.HelpIntent I want to know
+AMAZON.HelpIntent What should i ask
+AMAZON.HelpIntent How this works
+AMAZON.HelpIntent What to ask
+AMAZON.HelpIntent What to say
+AMAZON.HelpIntent how to ask
+AMAZON.HelpIntent how this works
+AMAZON.HelpIntent help me
+AMAZON.HelpIntent i need help
+AMAZON.HelpIntent i am not sure
+AMAZON.HelpIntent not sure
+AMAZON.HelpIntent not sure what to do
+
+didNotUnderstand gibberish
+didNotUnderstand blah
+didNotUnderstand blah blah blah
+didNotUnderstand speechless
+didNotUnderstand what
+didNotUnderstand who
+didNotUnderstand whom
+didNotUnderstand when
+didNotUnderstand where
+didNotUnderstand which
+didNotUnderstand z
+didNotUnderstand zz
+didNotUnderstand hmm
+didNotUnderstand oops
+
+AMAZON.PauseIntent Pause
+AMAZON.PauseIntent Wait
+AMAZON.PauseIntent Hold on
+
+getPersonalFinanceIntent personal finance
+getPersonalFinanceIntent personal finance tips
+getPersonalFinanceIntent how to personal finance
+getPersonalFinanceIntent tips on managing budget
+getPersonalFinanceIntent today personal finance tip
+getPersonalFinanceIntent tell me personal finance tip
+getPersonalFinanceIntent how to manage budget
+
+getInvestingIntent invest
+getInvestingIntent investment
+getInvestingIntent investing
+getInvestingIntent investment tips
+getInvestingIntent investing tips
+getInvestingIntent tell me an investing tip
+getInvestingIntent investing tip of the day
+getInvestingIntent today investing tip
+getInvestingIntent tell me investing tip
+getInvestingIntent how to invest
+
+getQuickAsk quick ask
+
+getAdvice advice
+getAdvice get advice
+getAdvice tell me an advice
+getAdvice i want an advice
+getAdvice advice from Fidelity
+
+getBudgetingAdvice budgeting advice
+getBudgetingAdvice get budgeting advice
+getBudgetingAdvice i need to know about budgeting advice
+getBudgetingAdvice advice me about budgeting
+
+getAdviceFromIncome income {income} a year
+getAdviceFromIncome income {income} dollars
+getAdviceFromIncome my yearly ncome is {income}
+getAdviceFromIncome my income is {income}
+getAdviceFromIncome my income is {income} dollar
+getAdviceFromIncome my income is {income} dollar a year
+getAdviceFromIncome i make {income} a year
+getAdviceFromIncome my paycheck is {income}
+
+getAdviceRetirement I am {myage} years old my income is {myincome} thousands dollar a year and I would like to contribute {contribution} percent of my income
+
+openAccount how can i open retirement account
+openAccount retirement account
+openAccount tell me how to open a retirement account
+openAccount open a retirement account
+openAccount how to open retirement account
+
+getCryptoPrice {assetName}
+getCryptoPrice price {assetName}
+getCryptoPrice get price {assetName}
+getCryptoPrice what is the price of {assetName}
+getCryptoPrice how much is {assetName}
+getCryptoPrice what is {assetName} price
+getCryptoPrice current {assetName} price
+
+getDef_error {errorPhrase}
+getDef_error what is {errorPhrase}
+getDef_error do you know {errorPhrase}
+getDef_error tell me about {errorPhrase}
+
+getDef_RiskCapacity risk capacity
+getDef_RiskCapacity risk
+getDef_RiskCapacity capacity
+getDef_RiskCapacity what is risk capacity
+
+getDef_MutualFunds mutual funds
+getDef_MutualFunds what is mutual funds
+getDef_MutualFunds tell me about mutual funds
+getDef_MutualFunds tell me more about mutual funds
+
+getSecret tell me a secret

@@ -1,0 +1,85 @@
+{
+    "intents": [{
+            "intent": "didNotUnderstand"
+        },
+        {
+            "intent": "getPersonalFinanceIntent"
+        },
+        {
+            "intent": "getInvestingIntent"
+        },
+        {
+            "intent": "getQuickAsk"
+        },
+        {
+            "intent": "getAdvice"
+        },
+        {
+            "intent": "getBudgetingAdvice"
+        },
+        {
+            "intent": "getAdviceFromIncome",
+            "slots": [{
+                "name": "income",
+                "type": "AMAZON.Number"
+            }]
+        },
+        {
+            "intent": "getAdviceRetirement",
+            "slots": [{
+                    "name": "myincome",
+                    "type": "AMAZON.Number"
+                },
+                {
+                    "name": "myage",
+                    "type": "AMAZON.Number"
+                },
+                {
+                    "name": "contribution",
+                    "type": "AMAZON.Number"
+                }
+            ]
+        },
+        {
+            "intent": "openAccount"
+        },
+        {
+            "intent": "getCryptoPrice",
+            "slots": [{
+                "name": "assetName",
+                "type": "symbol"
+            }]
+        },
+        {
+            "intent": "getDef_error",
+            "slots": [{
+                "name": "errorPhrase",
+                "type": "term"
+            }]
+        },
+        {
+            "intent": "getDef_RiskCapacity"
+        },
+        {
+            "intent": "getDef_MutualFunds"
+        },
+        {
+            "intent": "getSecret"
+        },
+        {
+            "intent": "AMAZON.PauseIntent"
+        },
+        {
+            "intent": "AMAZON.ResumeIntent"
+        },
+        {
+            "intent": "AMAZON.HelpIntent"
+        },
+        {
+            "intent": "AMAZON.StopIntent"
+        },
+        {
+            "intent": "AMAZON.CancelIntent"
+        }
+    ]
+}
