@@ -10,9 +10,9 @@ const Alexa = require('alexa-sdk');
 var https = require('https');
 /* -------------------------- Speeches ------------------------ */
 // welcome prompt
-const welcome_Prompt = "Welcome to Fidelity MyMoney, what do you want to know today? You can ask for personal finance, investing tips or advice from Fidelity.";
+const welcome_Prompt = "Hello. Your trip advisor is here.";
 // help prompt
-const help_Prompt = "You can ask me for personal finance or investing tips. Say bye to exit.";
+const help_Prompt = "You can ask me for estimate gas expenses. Say bye to exit.";
 // ending prompt
 const endingPersonalFinance_Prompt = 'For more helpful tips on personal finance, visit Fidelity.com slash MyMoney';
 const endingInvesting_Prompt = 'For more helpful tips on investing, visit Fidelity.com slash MyMoney';
@@ -35,23 +35,14 @@ const open_account_Fid_Go_SSML = ' <emphasis level="strong">Introducing Fidelity
 const secret_SSML = ' I want to tell you a secret. <amazon:effect name="whispered">I know a place to help you start invest and manage money better. </amazon:effect>';
 //
 const explain_Prompt_SSML = ' Let me know if you dont understand something? You can say: I am good. To exit. ';
-// Personal Finance Data
-const personalFinanceArray = [
+// Personal Data
+const recommenderArray = [
     // tip 1
-    'You should try the simple 50, 15, 5 rule! Use 50% of your monthly take-home-pay towards basic necessities, like rent and groceries, 15% towards retirement savings, and 5% towards an emergency fund for unexpected costs. Then you can use the remaining 30% towards anything you would like!',
+    'I think you should',
     // tip 2
-    'If you’re new to personal finance, you should know that your budget may change each month. For instance, your budget might change if you’re a freelancer, self-employed or if you work on commissions. Your budget could also change as your utility bills vary from different seasons. So keep in mind that creating a budget is never a one-time event but it is necessary to ensure your financial security in the long run. ',
+    'Maybe you can try to',
     // tip 3
-    'There are few signs your budget needs an overhaul: 1. You survive paycheck to paycheck. 2. Credit cards are your savior. 3. Your salary has changed. 4. You keep using your savings. last but not least. You are unprepared for emergency financial needs. Whatever the expense, your budget should include an emergency category to accommodate for the unknown.'
-];
-// Investing Data
-const investArray = [
-    // tip 1
-    'Did you know? One of the easiest ways to begin investing is to start saving for retirement. Time and compounding are the keys. You may need a lot of money to live in retirement. If you save a little bit of money over a long period of time, compounding returns could do a lot of the heavy lifting for you. As your savings earn a return, the returns are added to the original amount. As those returns earn returns of their own, your savings could snowball. It takes time for compounding to work so starting early is important.',
-    // tip 2
-    'Did you know that domestic stocks don’t always outperform international equities?  Stocks of companies based in the U.S. Have been on a tear in recent years—but that is not always the case. Historical performance over the past four decades shows that domestic and international stocks have moved in a cycle of alternating outperformance. So, next time, when you’re choosing what to invest next, don’t forget to check out some foreign equities. ',
-    // tip 3
-    'Risk is one of the most misunderstood areas of finance. so. lets take a moment to review what you should know : Financial risk and investing go hand in hand. First, you need to know what your risk tolerance is? . If you are risk-averse, you may be the type of person that keeps all your money in a savings account. If you are a riskier investor, you may take on too much risk by investing aggressively in stocks or other types of investments that have the potential for large returns. The danger with riskier investments too close to retirement is that you could compromise your financial stability by not having enough time to recoup your losses. Also, Know what your risk capacity is. Last but not least, Know what to do with risk. The truth is, risk is always present when it comes to your finances. There is no such thing as a risk-free investment. In fact, some risk must be present in order to receive a return, but you want to take smart, calculated risks that make the most sense in your situation.'
+    'You should'
 ];
 //functions
 exports.handler = (event, context) => {
@@ -77,7 +68,7 @@ exports.handler = (event, context) => {
                 console.log(`INTENT REQUEST`)
 
                 switch (event.request.intent.name) {
-                    // AMAZON Built-In Intents
+                    // \\\\\\\\\\\\\\\\\\\\\\\\ AMAZON /////////////////////////
                     case "AMAZON.HelpIntent":
                         context.succeed(
                             generateResponse(
@@ -117,7 +108,9 @@ exports.handler = (event, context) => {
                             )
                         );
                         break;
-                        // Custom Intent
+                        // \\\\\\\\\\\\\\\\\\\\\\\\ CUSTOM /////////////////////////
+                        // ======================== INTENT =========================
+                        // Handling Error while users provide bad input
                     case "didNotUnderstand":
                         context.succeed(
                             generateResponse(
@@ -125,58 +118,8 @@ exports.handler = (event, context) => {
                             )
                         );
                         break;
-                    case "getPersonalFinanceIntent":
-                        var ranPersonalFinanceData = personalFinanceArray[Math.floor(Math.random() * personalFinanceArray.length)]
-                        context.succeed(
-                            generateResponse(
-                                buildSpeechletResponse(`Here is your personal finance tip: .${ranPersonalFinanceData}, ${endingPersonalFinance_Prompt}`, true), {}
-                            )
-                        );
-                        break;
-
-                    case "getInvestingIntent":
-                        var ranInvestData = investArray[Math.floor(Math.random() * investArray.length)]
-                        context.succeed(
-                            generateResponse(
-                                buildSpeechletResponse(`Here is your investing tip: . ${ranInvestData}, ${endingInvesting_Prompt}`, true), {}
-                            )
-                        );
-                        break;
-
-                        // Defination
-                    case "getDef_error":
-                        const errorInput = event.request.intent.slots.errorPhrase.value
-                        var errorResponse = "";
-                        if (errorInput === null) {
-                            errorResponse = "it";
-                        }
-                        if (errorInput === undefined) {
-                            errorResponse = "it";
-                        } else {
-                            errorResponse = errorInput;
-                        }
-                        context.succeed(
-                            generateResponse(
-                                buildSpeechletResponseSSML(`<speak>Hmm, i heard about ${errorInput}. But the developer has not taught me the answer for this. Maybe check it next time and leave me a feedback so i can be smarter. ${re_Prompt} </speak>`, false), {}
-                            )
-                        );
-                        break;
-                    case "getDef_RiskCapacity":
-                        context.succeed(
-                            generateResponse(
-                                buildSpeechletResponseSSML(`<speak>${invest_03_FollowUp}${secret_SSML}${open_account_Fid_Go_SSML}</speak>`, true), {}
-                            )
-                        );
-                        break;
-
-                    case "getDef_MutualFunds":
-                        context.succeed(
-                            generateResponse(
-                                buildSpeechletResponseSSML(`<speak>${invest_02_FollowUp} </speak>`, true), {}
-                            )
-                        );
-                        break;
-
+                        // ======================== INTENT =========================
+                        // Quick Ask for user that is familiar
                     case "getQuickAsk":
                         context.succeed(
                             generateResponse(
@@ -184,9 +127,52 @@ exports.handler = (event, context) => {
                             )
                         );
                         break;
-
-                        // Advance Feature
+                        // \\\\\\\\\\\\\\\\\\\\\\\\ ADVANCE /////////////////////////
+                        // ======================== INTENT =========================
                         // Simple approach to budgetting
+                    case "getGeocode":
+                        var address = event.request.intent.slots.places.value;
+                        const geocodeApikey = 'AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs'
+                        var endpoint = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${geocodeApikey}`;
+                        var body = "";
+                        https.get(endpoint, (response) => {
+                            response.on('data', (chunk) => {
+                                body += chunk;
+                            });
+                            response.on('end', () => {
+                                var data = JSON.parse(body);
+                                // either using JSON.stringtify or Number() to parse from Google API
+                                //var lat = JSON.stringify(data.results[0].geometry.location.lat)
+                                var lat = Number(data.results[0].geometry.location.lat)
+                                var long = Number(data.results[0].geometry.location.lng)
+                                //var geocode = `${lat} and ${long}`
+                                context.succeed(
+                                    generateResponse(
+                                        buildSpeechletResponse(`geocode of ${address}, geocode is ${lat} and ${long}`, false), {}
+                                    )
+                                );
+                            });
+                        });
+                        break;
+                    case "getCryptoPrice":
+                        var symbol = event.request.intent.slots.assetName.value;
+                        var endpoint = `https://api.coinmarketcap.com/v1/ticker/${symbol}/`;
+                        var body = "";
+                        https.get(endpoint, (response) => {
+                            response.on('data', (chunk) => {
+                                body += chunk;
+                            });
+                            response.on('end', () => {
+                                var data = JSON.parse(body);
+                                var cryptoPrice = Math.ceil(data[0].price_usd);
+                                context.succeed(
+                                    generateResponse(
+                                        buildSpeechletResponse(`Current price of ${symbol} is ${cryptoPrice} dollar. ${re_Prompt}`, false), {}
+                                    )
+                                );
+                            });
+                        });
+                        break;
                     case "getAdvice":
                         context.succeed(
                             generateResponse(
@@ -246,7 +232,7 @@ exports.handler = (event, context) => {
                             }
                         }
                         break;
-
+                        // \\\\\\\\\\\\\\\\\\\\\\\\ CARD RESPONSE /////////////////////////
                     case "openAccount":
                         context.succeed(
                             generateResponse(
@@ -300,25 +286,6 @@ exports.handler = (event, context) => {
                         break;
 
                         // HIDDEN INTENTS
-                    case "getCryptoPrice":
-                        var symbol = event.request.intent.slots.assetName.value;
-                        var endpoint = `https://api.coinmarketcap.com/v1/ticker/${symbol}/`;
-                        var body = "";
-                        https.get(endpoint, (response) => {
-                            response.on('data', (chunk) => {
-                                body += chunk;
-                            });
-                            response.on('end', () => {
-                                var data = JSON.parse(body);
-                                var cryptoPrice = Math.ceil(data[0].price_usd);
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponse(`Current price of ${symbol} is ${cryptoPrice} dollar. ${re_Prompt}`, false), {}
-                                    )
-                                );
-                            });
-                        });
-                        break;
                     case "getSecret":
                         context.succeed(
                             generateResponse(

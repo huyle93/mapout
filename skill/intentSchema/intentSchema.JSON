@@ -15,7 +15,11 @@
             "intent": "getAdvice"
         },
         {
-            "intent": "getBudgetingAdvice"
+            "intent": "getCryptoPrice",
+            "slots": [{
+                "name": "assetName",
+                "type": "symbol"
+            }]
         },
         {
             "intent": "getAdviceFromIncome",
@@ -42,26 +46,6 @@
         },
         {
             "intent": "openAccount"
-        },
-        {
-            "intent": "getCryptoPrice",
-            "slots": [{
-                "name": "assetName",
-                "type": "symbol"
-            }]
-        },
-        {
-            "intent": "getDef_error",
-            "slots": [{
-                "name": "errorPhrase",
-                "type": "term"
-            }]
-        },
-        {
-            "intent": "getDef_RiskCapacity"
-        },
-        {
-            "intent": "getDef_MutualFunds"
         },
         {
             "intent": "getSecret"
