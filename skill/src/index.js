@@ -44,6 +44,7 @@ const recommenderArray = [
     // tip 3
     'You should'
 ];
+var myCoordinates = [43.1389480, -70.9370250]
 //functions
 exports.handler = (event, context) => {
     try {
@@ -132,23 +133,23 @@ exports.handler = (event, context) => {
                         // Simple approach to budgetting
                     case "getGeocode":
                         var address = event.request.intent.slots.places.value;
-                        const geocodeApikey = 'AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs'
-                        var endpoint = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${geocodeApikey}`;
-                        var body = "";
-                        https.get(endpoint, (response) => {
+                        var matrixApi = 'AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY'
+                        var geocodeApikey = 'AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs'
+                        var endpointGeocode = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${geocodeApikey}`;
+                        var body = ''
+                        https.get(endpointGeocode, (response) => {
                             response.on('data', (chunk) => {
                                 body += chunk;
                             });
                             response.on('end', () => {
                                 var data = JSON.parse(body);
                                 // either using JSON.stringtify or Number() to parse from Google API
-                                //var lat = JSON.stringify(data.results[0].geometry.location.lat)
                                 var lat = Number(data.results[0].geometry.location.lat)
                                 var long = Number(data.results[0].geometry.location.lng)
-                                //var geocode = `${lat} and ${long}`
+                                var endpointMatrix = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=${matrixApi}`
                                 context.succeed(
                                     generateResponse(
-                                        buildSpeechletResponse(`geocode of ${address}, geocode is ${lat} and ${long}`, false), {}
+                                        buildSpeechletResponse(`${endpointMatrix}`, false)
                                     )
                                 );
                             });
@@ -156,9 +157,9 @@ exports.handler = (event, context) => {
                         break;
                     case "getCryptoPrice":
                         var symbol = event.request.intent.slots.assetName.value;
-                        var endpoint = `https://api.coinmarketcap.com/v1/ticker/${symbol}/`;
+                        var endpointGeocode = `https://api.coinmarketcap.com/v1/ticker/${symbol}/`;
                         var body = "";
-                        https.get(endpoint, (response) => {
+                        https.get(endpointGeocode, (response) => {
                             response.on('data', (chunk) => {
                                 body += chunk;
                             });
@@ -368,3 +369,18 @@ var generateResponse = (speechletResponse, sessionAttributes) => {
         response: speechletResponse
     };
 };
+
+// ======================== Custom functions ======================= //
+var getGeocode = function (address) {
+    var options = {
+        host: 'https://maps.googleapis.com/maps/api/geocode/json',
+        port: 443,
+        path: `?address=${address}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
+        method: 'GET'
+    };
+    var data = JSON.parse(options);
+    // either using JSON.stringtify or Number() to parse from Google API
+    var lat = Number(data.results[0].geometry.location.lat)
+    var long = Number(data.results[0].geometry.location.lng)
+    return [lat,long]
+}
