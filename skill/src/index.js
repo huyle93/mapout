@@ -133,41 +133,39 @@ exports.handler = (event, context) => {
                         // Simple approach to budgetting
                     case "getGeocode":
                         var address = event.request.intent.slots.places.value;
-                        /* var matrixApi = 'AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY'
-                        var geocodeApikey = 'AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs'
-                        var endpointGeocode = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${geocodeApikey}`;
-                        var body = ''
-                        https.get(endpointGeocode, (response) => {
-                            response.on('data', (chunk) => {
-                                body += chunk;
-                            });
-                            response.on('end', () => {
-                                var data = JSON.parse(body);
-                                // either using JSON.stringtify or Number() to parse from Google API
-                                var lat = Number(data.results[0].geometry.location.lat)
-                                var long = Number(data.results[0].geometry.location.lng)
-                                var endpointMatrix = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=${matrixApi}`
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponse(`${endpointMatrix}`, false)
-                                    )
-                                );
-                            });
-                        }); */
-                        ///////////
+                        var make = 'honda'
+                        var model = 'civic'
+                        var year = '2010'
                         httpsGet_Geocode(address, (geocode) => {
                             var lat = geocode[0]
                             var long = geocode[1]
-                            httpsGet_Matrix(lat,long, (matrix) => {
+                            httpsGet_Matrix(lat, long, (matrix) => {
                                 var distancevalue = matrix[0]
                                 var distancetext = matrix[1]
                                 var durationvalue = matrix[2]
                                 var durationtext = matrix[3]
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponse(`distance is ${distancetext}, take ${durationtext}`, true)
-                                    )
-                                );
+                                httpsGet_CarStats(make, model, year, (stats) => {
+                                    var ctympg = stats[0]
+                                    var hwympg = stats[1]
+                                    httpsGet_CarTheft('ma', (car) => {
+                                        var theftCarMake = car[0]
+                                        var theftCarModel = car[1]
+                                        var theftCar = `${car[0]} ${car[1]}`
+                                        var myCar = `${make} ${model}`
+                                        if (myCar.toLowerCase() == theftCar.toLowerCase()) {
+                                            context.succeed(
+                                                generateResponse(
+                                                    buildSpeechletResponse(`you are fucked`, true)
+                                                )
+                                            );
+                                        }
+                                        context.succeed(
+                                            generateResponse(
+                                                buildSpeechletResponse(`distance is ${distancetext}, take ${durationtext}. Your car has ${stats[0]} city mpg, ${stats[1]} hwy mpg`, true)
+                                            )
+                                        );
+                                    })
+                                })
                             })
                         });
                         break;
@@ -426,8 +424,9 @@ function httpsGet_Geocode(myData, callback) {
 }
 // Matrix
 function getMiles(i) {
-    return i*0.000621371192;
+    return i * 0.000621371192;
 }
+
 function httpsGet_Matrix(lat, long, callback) {
     // Update these options with the details of the web service you would like to call
     var options = {
@@ -466,7 +465,80 @@ function httpsGet_Matrix(lat, long, callback) {
     req.end();
 
 }
-// Shine Car Statse
+// Shine Car Stats
+function httpsGet_CarStats(make, model, year, callback) {
+    // Update these options with the details of the web service you would like to call
+    var options = {
+        host: 'apis.solarialabs.com',
+        port: 443,
+        path: `/shine/v1/vehicle-stats/specs?make=${make}&model=${model}&year=${year}&full-data=true&apikey=UKxbxhZYNEiP4spThYCy61bwEhRQXlPb`,
+        method: 'GET',
+
+        // if x509 certs are required:
+        // key: fs.readFileSync('certs/my-key.pem'),
+        // cert: fs.readFileSync('certs/my-cert.pem')
+    };
+
+    var req = https.request(options, res => {
+        res.setEncoding('utf8');
+        var returnData = "";
+
+        res.on('data', chunk => {
+            returnData = returnData + chunk;
+        });
+
+        res.on('end', () => {
+            // we have now received the raw return data in the returnData variable.
+            // We can see it in the log output via:
+            // console.log(JSON.stringify(returnData))
+            // we may need to parse through it to extract the needed data
+            var data = JSON.parse(returnData);
+            var citygas = data[0].City_Conventional_Fuel
+            var hwygas = data[0].Hwy_Conventional_Fuel
+            callback([citygas, citygas]);
+            // this will execute whatever function the caller defined, with one argument
+        });
+    });
+    req.end();
+
+}
 // Shine Car Theft 
+function httpsGet_CarTheft(state, callback) {
+    // Update these options with the details of the web service you would like to call
+    // this will return top 3rd that got stolen
+    var options = {
+        host: 'apis.solarialabs.com',
+        port: 443,
+        path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=UKxbxhZYNEiP4spThYCy61bwEhRQXlPb`,
+        method: 'GET',
+
+        // if x509 certs are required:
+        // key: fs.readFileSync('certs/my-key.pem'),
+        // cert: fs.readFileSync('certs/my-cert.pem')
+    };
+    var req = https.request(options, res => {
+        res.setEncoding('utf8');
+        var returnData = "";
+
+        res.on('data', chunk => {
+            returnData = returnData + chunk;
+        });
+
+        res.on('end', () => {
+            // we have now received the raw return data in the returnData variable.
+            // We can see it in the log output via:
+            // console.log(JSON.stringify(returnData))
+            // we may need to parse through it to extract the needed data
+            var data = JSON.parse(returnData);
+            //carArray.push(data[0].Make)
+            var make = data[0].Make
+            var model = data[0].Model
+            // this will execute whatever function the caller defined, with one argument
+            callback([make, model]);
+        });
+    });
+    req.end();
+
+}
 // MyGasFeed
 // GooglePlace
