@@ -1,4 +1,4 @@
-'use strict'
+'use-strict'
 /* eslint-disable  func-names */
 /* eslint quote-props: ["error", "consistent"]*/
 const Alexa = require('alexa-sdk');
@@ -50,71 +50,71 @@ const handlers = {
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
-        var make = this.event.request.intent.slots.model.value;
-        var model = this.event.request.intent.slots.model.value;
-        var year = this.sevent.request.intent.slots.year.value;
+        // var make = this.event.request.intent.slots.model.value;
+        // var model = this.event.request.intent.slots.model.value;
+        // var year = this.sevent.request.intent.slots.year.value;
         speechOutput += " from " + fromCity + " to " + address + " , " + toCity + " on " + travelDate + ".";
 
-        // httpsGet_Geocode(address, (geocode) => {
-        //     console.log("sent     : " + address);
-        //     console.log("received : " + geocode);
-        //     var lat = geocode[0];
-        //     var long = geocode[1];
-        //     speechOutput += " hello how are you";
-        //     var activity = isSlotValid(this.event.request, "activity");
-        //     if (activity) {
-        //         speechOutput += " to go " + activity;
-        //     }
-
-        //     //say the results
-        //     this.response.speak(speechOutput);
-        //     this.emit(":responseReady");
-        // });
-        // Calling API
         httpsGet_Geocode(address, (geocode) => {
-            var lat = geocode[0] // int
-            var long = geocode[1] // int
-            httpsGet_Matrix(lat, long, (matrix) => {
-                var distancevalue = matrix[0] // int
-                var distancetext = matrix[1]
-                var durationvalue = matrix[2] // int
-                var durationtext = matrix[3]
-                httpsGet_CarStats(make, model, year, (stats) => {
-                    var ctympg = stats[0] // int
-                    var hwympg = stats[1] // int
-                    httpsGet_CarTheft('ma', (car) => {
-                        var theftCarMake = car[0]
-                        var theftCarModel = car[1]
-                        var theftCar = `${car[0]} ${car[1]}`
-                        // 
-                        var myCar = `${make} ${model}`
-                        // gas price int
-                        var gasPrice = get_price(lat, long)
-                        var gasCost = Math.ceil((gasPrice * distancevalue) / hwympg)
-                        if (myCar.toLowerCase() == theftCar.toLowerCase()) {
-                            speechOutput += " The total traveling distance is " + distancetext + " However, your car is on top of the car stolen list in this state. Becareful, I would recommend to find a garage to park.";
-                            var activity = isSlotValid(this.event.request, "activity");
-                            if (activity) {
-                                speechOutput += " to go " + activity;
-                            }
+            console.log("sent     : " + address);
+            console.log("received : " + geocode);
+            var lat = geocode[0];
+            var long = geocode[1];
+            speechOutput += " hello how are you";
+            var activity = isSlotValid(this.event.request, "activity");
+            if (activity) {
+                speechOutput += " to go " + activity;
+            }
 
-                            //say the results
-                            this.response.speak(speechOutput);
-                            this.emit(":responseReady");
-                        }
-                        speechOutput += " The total traveling distance is " + distancetext + ", it will take around " + durationtext + " to go there. Your car ";
-                        var activity = isSlotValid(this.event.request, "activity");
-                        if (activity) {
-                            speechOutput += " to go " + activity;
-                        }
-
-                        //say the results
-                        this.response.speak(speechOutput);
-                        this.emit(":responseReady");
-                    })
-                })
-            })
+            //say the results
+            this.response.speak(speechOutput);
+            this.emit(":responseReady");
         });
+        // Calling API
+        // httpsGet_Geocode(address, (geocode) => {
+        //     var lat = geocode[0] // int
+        //     var long = geocode[1] // int
+        //     httpsGet_Matrix(lat, long, (matrix) => {
+        //         var distancevalue = matrix[0] // int
+        //         var distancetext = matrix[1]
+        //         var durationvalue = matrix[2] // int
+        //         var durationtext = matrix[3]
+        //         httpsGet_CarStats(make, model, year, (stats) => {
+        //             var ctympg = stats[0] // int
+        //             var hwympg = stats[1] // int
+        //             httpsGet_CarTheft('ma', (car) => {
+        //                 var theftCarMake = car[0]
+        //                 var theftCarModel = car[1]
+        //                 var theftCar = `${car[0]} ${car[1]}`
+        //                 // 
+        //                 var myCar = `${make} ${model}`
+        //                 // gas price int
+        //                 var gasPrice = get_price(lat, long)
+        //                 var gasCost = Math.ceil((gasPrice * distancevalue) / hwympg)
+        //                 if (myCar.toLowerCase() == theftCar.toLowerCase()) {
+        //                     speechOutput += " The total traveling distance is " + distancetext + " However, your car is on top of the car stolen list in this state. Becareful, I would recommend to find a garage to park.";
+        //                     var activity = isSlotValid(this.event.request, "activity");
+        //                     if (activity) {
+        //                         speechOutput += " to go " + activity;
+        //                     }
+
+        //                     //say the results
+        //                     this.response.speak(speechOutput);
+        //                     this.emit(":responseReady");
+        //                 }
+        //                 speechOutput += " The total traveling distance is " + distancetext + ", it will take around " + durationtext + " to go there. Your car ";
+        //                 var activity = isSlotValid(this.event.request, "activity");
+        //                 if (activity) {
+        //                     speechOutput += " to go " + activity;
+        //                 }
+
+        //                 //say the results
+        //                 this.response.speak(speechOutput);
+        //                 this.emit(":responseReady");
+        //             })
+        //         })
+        //     })
+        // });
 
     },
     'AMAZON.HelpIntent': function () {
