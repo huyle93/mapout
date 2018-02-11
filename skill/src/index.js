@@ -133,7 +133,7 @@ exports.handler = (event, context) => {
                         // Simple approach to budgetting
                     case "getGeocode":
                         var address = event.request.intent.slots.places.value;
-                        var matrixApi = 'AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY'
+                        /* var matrixApi = 'AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY'
                         var geocodeApikey = 'AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs'
                         var endpointGeocode = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${geocodeApikey}`;
                         var body = ''
@@ -153,6 +153,22 @@ exports.handler = (event, context) => {
                                     )
                                 );
                             });
+                        }); */
+                        ///////////
+                        httpsGet_Geocode(address, (geocode) => {
+                            var lat = geocode[0]
+                            var long = geocode[1]
+                            httpsGet_Matrix(lat,long, (matrix) => {
+                                var distancevalue = matrix[0]
+                                var distancetext = matrix[1]
+                                var durationvalue = matrix[2]
+                                var durationtext = matrix[3]
+                                context.succeed(
+                                    generateResponse(
+                                        buildSpeechletResponse(`distance is ${distancetext}, take ${durationtext}`, true)
+                                    )
+                                );
+                            })
                         });
                         break;
                     case "getCryptoPrice":
@@ -371,16 +387,86 @@ var generateResponse = (speechletResponse, sessionAttributes) => {
 };
 
 // ======================== Custom functions ======================= //
-var getGeocode = function (address) {
+// Geocode
+function httpsGet_Geocode(myData, callback) {
+    // Update these options with the details of the web service you would like to call
     var options = {
-        host: 'https://maps.googleapis.com/maps/api/geocode/json',
+        host: 'maps.googleapis.com',
         port: 443,
-        path: `?address=${address}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
-        method: 'GET'
+        path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
+        method: 'GET',
+
+        // if x509 certs are required:
+        // key: fs.readFileSync('certs/my-key.pem'),
+        // cert: fs.readFileSync('certs/my-cert.pem')
     };
-    var data = JSON.parse(options);
-    // either using JSON.stringtify or Number() to parse from Google API
-    var lat = Number(data.results[0].geometry.location.lat)
-    var long = Number(data.results[0].geometry.location.lng)
-    return [lat,long]
+
+    var req = https.request(options, res => {
+        res.setEncoding('utf8');
+        var returnData = "";
+
+        res.on('data', chunk => {
+            returnData = returnData + chunk;
+        });
+
+        res.on('end', () => {
+            // we have now received the raw return data in the returnData variable.
+            // We can see it in the log output via:
+            // console.log(JSON.stringify(returnData))
+            // we may need to parse through it to extract the needed data
+            var pop = JSON.parse(returnData);
+            var lat = Number(pop.results[0].geometry.location.lat)
+            var lng = Number(pop.results[0].geometry.location.lng)
+            callback([lat, lng]);
+            // this will execute whatever function the caller defined, with one argument
+        });
+    });
+    req.end();
+
 }
+// Matrix
+function getMiles(i) {
+    return i*0.000621371192;
+}
+function httpsGet_Matrix(lat, long, callback) {
+    // Update these options with the details of the web service you would like to call
+    var options = {
+        host: 'maps.googleapis.com',
+        port: 443,
+        path: `/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY`,
+        method: 'GET',
+
+        // if x509 certs are required:
+        // key: fs.readFileSync('certs/my-key.pem'),
+        // cert: fs.readFileSync('certs/my-cert.pem')
+    };
+
+    var req = https.request(options, res => {
+        res.setEncoding('utf8');
+        var returnData = "";
+
+        res.on('data', chunk => {
+            returnData = returnData + chunk;
+        });
+
+        res.on('end', () => {
+            // we have now received the raw return data in the returnData variable.
+            // We can see it in the log output via:
+            // console.log(JSON.stringify(returnData))
+            // we may need to parse through it to extract the needed data
+            var data = JSON.parse(returnData);
+            var distancevalue = data.rows[0].elements[0].distance.value;
+            var distancetext = data.rows[0].elements[0].distance.text;
+            var durationvalue = data.rows[0].elements[0].duration.value;
+            var durationtext = data.rows[0].elements[0].duration.text;
+            callback([distancevalue, distancetext, durationvalue, durationtext]);
+            // this will execute whatever function the caller defined, with one argument
+        });
+    });
+    req.end();
+
+}
+// Shine Car Statse
+// Shine Car Theft 
+// MyGasFeed
+// GooglePlace
