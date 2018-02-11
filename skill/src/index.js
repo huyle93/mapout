@@ -45,6 +45,27 @@ const recommenderArray = [
     'You should'
 ];
 var myCoordinates = [43.1389480, -70.9370250]
+const REQUIRED_SLOTS = [
+    'places'
+];
+const defaultData = [
+    {
+        "name": "make",
+        "value": "make_type",
+        "ERCode": "ER_SUCCESS_MATCH",
+        "ERValues": [
+            { "value": "toyota" }
+        ]
+    },
+    {
+        "name": "model",
+        "value": "model_type",
+        "ERCode": "ER_SUCCESS_MATCH",
+        "ERValues": [
+            { "value": "camry" },
+        ]
+    }
+];
 //functions
 exports.handler = (event, context) => {
     try {
@@ -131,11 +152,31 @@ exports.handler = (event, context) => {
                         // \\\\\\\\\\\\\\\\\\\\\\\\ ADVANCE /////////////////////////
                         // ======================== INTENT =========================
                         // Simple approach to budgetting
-                    case "getGeocode":
+                    case "getTripInfo":
                         var address = event.request.intent.slots.places.value;
+                        /* var make = event.request.intent.slots.make.value;
+                        var model = event.request.intent.slots.model.value;
+                        var year = event.request.intent.slots.year.value; */
                         var make = 'honda'
                         var model = 'civic'
                         var year = '2010'
+                        // delegate to Alexa to collect all the required slots
+                        let isTestingWithSimulator = true; //autofill slots when using simulator, dialog management is only supported with a device
+                        let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
+
+                        // console.log("filled slots: " + JSON.stringify(filledSlots));
+                        // at this point, we know that all required slots are filled.
+                        let slotValues = getSlotValues(filledSlots);
+                        /* // temporary fall back
+                        if (model == null || model == undefined || model == NaN) {
+                            model == 'civic'
+                        }
+                        if (make == null || make == undefined || make == NaN) {
+                            make == 'honda'
+                        }
+                        if (year == null || year == undefined || year == NaN) {
+                            year == '2010'
+                        } */
                         httpsGet_Geocode(address, (geocode) => {
                             var lat = geocode[0]
                             var long = geocode[1]
@@ -155,7 +196,7 @@ exports.handler = (event, context) => {
                                         if (myCar.toLowerCase() == theftCar.toLowerCase()) {
                                             context.succeed(
                                                 generateResponse(
-                                                    buildSpeechletResponse(`you are fucked`, true)
+                                                    buildSpeechletResponse(`your car will got stolen for sure`, true)
                                                 )
                                             );
                                         }
@@ -169,83 +210,12 @@ exports.handler = (event, context) => {
                             })
                         });
                         break;
-                    case "getCryptoPrice":
-                        var symbol = event.request.intent.slots.assetName.value;
-                        var endpointGeocode = `https://api.coinmarketcap.com/v1/ticker/${symbol}/`;
-                        var body = "";
-                        https.get(endpointGeocode, (response) => {
-                            response.on('data', (chunk) => {
-                                body += chunk;
-                            });
-                            response.on('end', () => {
-                                var data = JSON.parse(body);
-                                var cryptoPrice = Math.ceil(data[0].price_usd);
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponse(`Current price of ${symbol} is ${cryptoPrice} dollar. ${re_Prompt}`, false), {}
-                                    )
-                                );
-                            });
-                        });
-                        break;
                     case "getAdvice":
                         context.succeed(
                             generateResponse(
                                 buildSpeechletResponseSSML(`<speak>We have budgeting advice and retirement advice, which one do you want to know? </speak>`, false), {}
                             )
                         );
-                        break;
-                    case "getBudgetingAdvice":
-                        context.succeed(
-                            generateResponse(
-                                buildSpeechletResponseSSML(`<speak>Sure. We make this is your confidential information, we will not share this information with anyone else. I need to know your yearly income. Please tell me what is your yearly income? </speak>`, false), {}
-                            )
-                        );
-                        break;
-                    case "getAdviceFromIncome":
-                        var incomeReturn = event.request.intent.slots.income.value
-                        var income = ""
-                        var failedMessage = "Hmm, i could not hear it clear. Can you repeat your income again?"
-                        if (incomeReturn === null) {
-                            context.succeed(
-                                generateResponse(
-                                    buildSpeechletResponse(failedMessage, false)
-                                )
-                            );
-                        }
-                        if (incomeReturn === undefined) {
-                            context.succeed(
-                                generateResponse(
-                                    buildSpeechletResponse(failedMessage, false)
-                                )
-                            );
-                        } else {
-                            if (isNaN(incomeReturn)) {
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponse(failedMessage, false)
-                                    )
-                                );
-                            } else {
-                                income = incomeReturn;
-                                /* Math */
-                                var expense_50 = Math.ceil(income * 50 / 100);
-                                var retirement_saving_15 = Math.ceil(income * 15 / 100);
-                                var short_term_saving_5 = Math.ceil(income * 5 / 100);
-                                var sum = Math.ceil(expense_50 + retirement_saving_15 + short_term_saving_5);
-                                var leftover = Math.ceil(income - sum);
-                                // output speech
-                                var incomeAdviceOutput = `Great. Base on your income of ${income} dollars. We suggest you should spend around or less than ${expense_50} dollars for essential expenses. Put around ${retirement_saving_15} to your retirement account. If you dont have one, open one now. Around ${short_term_saving_5} dollars from your income can go toward a short term saving account. The leftover money of around ${leftover} dollars, you can spend for anything you want like foods, or hobbies. ${re_Prompt}`;
-                                // output to app
-                                var incomeAdvice_CardOutput = `Base on your income of $${income} dollars. You should spend: \r\n + Around or less than $${expense_50} dollars for essential expenses. \n + Put around $${retirement_saving_15} to your retirement account. Open one now if you dont have. \n + Around $${short_term_saving_5} dollars from your income can go toward a short-term saving account. \n + The leftover money of around $${leftover} dollars can be for anything you want like hobbies. \n => To Open a Retirement or Saving account, visit Fidelity.com/open-account `;
-                                /* Output */
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponseWithCard('Fidelity Budgeting Advice', incomeAdvice_CardOutput, incomeAdviceOutput, false), {}
-                                    )
-                                );
-                            }
-                        }
                         break;
                         // \\\\\\\\\\\\\\\\\\\\\\\\ CARD RESPONSE /////////////////////////
                     case "openAccount":
@@ -255,51 +225,6 @@ exports.handler = (event, context) => {
                             )
                         );
                         break;
-                    case "getAdviceRetirement":
-                        var income_retirement = event.request.intent.slots.myincome.value;
-                        var myAge_retirement = event.request.intent.slots.myage.value;
-                        var contribution_retirement = event.request.intent.slots.contribution.value;
-                        failedMessage = "Hmm, i could not hear it clear. Can you repeat your age, income and contribution again?";
-                        if (income_retirement && myAge_retirement && contribution_retirement === null) {
-                            context.succeed(
-                                generateResponse(
-                                    buildSpeechletResponse(failedMessage, false)
-                                )
-                            );
-                        }
-                        if (income_retirement && myAge_retirement && contribution_retirement === undefined) {
-                            context.succeed(
-                                generateResponse(
-                                    buildSpeechletResponse(failedMessage, false)
-                                )
-                            );
-                        } else {
-                            if (isNaN(income_retirement && myAge_retirement && contribution_retirement)) {
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponse(failedMessage, false)
-                                    )
-                                );
-                            } else {
-                                var num_income_retirement = income_retirement;
-                                var num_myAge_retirement = myAge_retirement;
-                                var num_contribution_retirement = contribution_retirement;
-                                var annualRate = 5 / 100;
-                                var monthlyRate = annualRate / 12 / 100;
-                                /* MATH */
-                                var investment = Math.ceil(num_income_retirement * num_contribution_retirement) / 100;
-                                var months = Math.ceil((65 - num_myAge_retirement) * 12);
-                                var futureValue = Math.ceil(investment * (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
-                                /* Output Speech */
-                                context.succeed(
-                                    generateResponse(
-                                        buildSpeechletResponse(futureValue, false)
-                                    )
-                                );
-                            }
-                        }
-                        break;
-
                         // HIDDEN INTENTS
                     case "getSecret":
                         context.succeed(
@@ -541,4 +466,220 @@ function httpsGet_CarTheft(state, callback) {
 
 }
 // MyGasFeed
+
 // GooglePlace
+
+///////////////////////////////////////////////////////////////////////////////
+// ***********************************
+// ** Dialog Management
+// ***********************************
+
+function getSlotValues(filledSlots) {
+    //given event.request.intent.slots, a slots values object so you have
+    //what synonym the person said - .synonym
+    //what that resolved to - .resolved
+    //and if it's a word that is in your slot values - .isValidated
+    let slotValues = {};
+
+    console.log('The filled slots: ' + JSON.stringify(filledSlots));
+    Object.keys(filledSlots).forEach(function (item) {
+        //console.log("item in filledSlots: "+JSON.stringify(filledSlots[item]));
+        var name = filledSlots[item].name;
+        //console.log("name: "+name);
+        if (filledSlots[item] &&
+            filledSlots[item].resolutions &&
+            filledSlots[item].resolutions.resolutionsPerAuthority[0] &&
+            filledSlots[item].resolutions.resolutionsPerAuthority[0].status &&
+            filledSlots[item].resolutions.resolutionsPerAuthority[0].status.code) {
+
+            switch (filledSlots[item].resolutions.resolutionsPerAuthority[0].status.code) {
+                case "ER_SUCCESS_MATCH":
+                    slotValues[name] = {
+                        "synonym": filledSlots[item].value,
+                        "resolved": filledSlots[item].resolutions.resolutionsPerAuthority[0].values[0].value.name,
+                        "isValidated": true
+                    };
+                    break;
+                case "ER_SUCCESS_NO_MATCH":
+                    slotValues[name] = {
+                        "synonym": filledSlots[item].value,
+                        "resolved": filledSlots[item].value,
+                        "isValidated": false
+                    };
+                    break;
+            }
+        } else {
+            slotValues[name] = {
+                "synonym": filledSlots[item].value,
+                "resolved": filledSlots[item].value,
+                "isValidated": false
+            };
+        }
+    }, this);
+    //console.log("slot values: "+JSON.stringify(slotValues));
+    return slotValues;
+}
+
+// This function delegates multi-turn dialogs to Alexa.
+// For more information about dialog directives see the link below.
+// https://developer.amazon.com/docs/custom-skills/dialog-interface-reference.html
+function delegateSlotCollection(shouldFillSlotsWithTestData) {
+    console.log("in delegateSlotCollection");
+    console.log("current dialogState: " + this.event.request.dialogState);
+
+    // This will fill any empty slots with canned data provided in defaultData
+    // and mark dialogState COMPLETED.
+    // USE ONLY FOR TESTING IN THE SIMULATOR.
+    if (shouldFillSlotsWithTestData) {
+        let filledSlots = fillSlotsWithTestData.call(this, defaultData);
+        this.event.request.dialogState = "COMPLETED";
+    };
+
+    if (this.event.request.dialogState === "STARTED") {
+        console.log("in STARTED");
+        console.log(JSON.stringify(this.event));
+        var updatedIntent = this.event.request.intent;
+        // optionally pre-fill slots: update the intent object with slot values 
+        // for which you have defaults, then return Dialog.Delegate with this 
+        // updated intent in the updatedIntent property
+
+        disambiguateSlot.call(this);
+        console.log("disambiguated: " + JSON.stringify(this.event));
+        return this.emit(":delegate", updatedIntent);
+        console.log('shouldnt see this.');
+    } else if (this.event.request.dialogState !== "COMPLETED") {
+        console.log("in not completed");
+        //console.log(JSON.stringify(this.event));
+
+        disambiguateSlot.call(this);
+        return this.emit(":delegate", updatedIntent);
+    } else {
+        console.log("in completed");
+        //console.log("returning: "+ JSON.stringify(this.event.request.intent));
+        // Dialog is now complete and all required slots should be filled,
+        // so call your normal intent handler.
+        return this.event.request.intent.slots;
+    }
+}
+
+
+// this function will keep any slot values currently in the request
+// and will fill other slots with data from testData
+function fillSlotsWithTestData(testData) {
+    console.log("in fillSlotsWithTestData");
+
+    //console.log("testData: "+JSON.stringify(testData));
+    //loop through each item in testData
+    testData.forEach(function (item, index, arr) {
+        //check to see if the slot exists
+        //console.log("item: "+JSON.stringify(item));
+        if (!this.event.request.intent.slots[item.name].value) {
+            //fill with test data
+            //construct the element
+            let newSlot = {
+                "name": item.name,
+                "value": item.value,
+                "resolutions": {
+                    "resolutionsPerAuthority": [{
+                        "authority": "",
+                        "status": {
+                            "code": item.ERCode,
+                        },
+                    }]
+                },
+                "confirmationStatus": "CONFIRMED"
+            };
+
+            //add Entity resolution values
+            if (item.ERCode == "ER_SUCCESS_MATCH") {
+                let ERValuesArr = [];
+                item.ERValues.forEach(function (ERItem) {
+                    let value = {
+                        "value": {
+                            "name": ERItem.value,
+                            "id": ""
+                        }
+                    };
+                    ERValuesArr.push(value);
+                })
+                newSlot.resolutions.resolutionsPerAuthority[0].values = ERValuesArr;
+            }
+
+            //add the new element to the response
+            this.event.request.intent.slots[item.name] = newSlot;
+        }
+    }, this);
+
+    //console.log("leaving fillSlotsWithTestData");
+    return this.event.request.intent.slots;
+}
+
+// If the user said a synonym that maps to more than one value, we need to ask 
+// the user for clarification. Disambiguate slot will loop through all slots and
+// elicit confirmation for the first slot it sees that resolves to more than 
+// one value.
+function disambiguateSlot() {
+    let currentIntent = this.event.request.intent;
+
+    Object.keys(this.event.request.intent.slots).forEach(function (slotName) {
+        let currentSlot = this.event.request.intent.slots[slotName];
+        let slotValue = slotHasValue(this.event.request, currentSlot.name);
+        if (currentSlot.confirmationStatus !== 'CONFIRMED' &&
+            currentSlot.resolutions &&
+            currentSlot.resolutions.resolutionsPerAuthority[0]) {
+
+            if (currentSlot.resolutions.resolutionsPerAuthority[0].status.code == 'ER_SUCCESS_MATCH') {
+                // if there's more than one value that means we have a synonym that 
+                // mapped to more than one value. So we need to ask the user for 
+                // clarification. For example if the user said "mini dog", and 
+                // "mini" is a synonym for both "small" and "tiny" then ask "Did you
+                // want a small or tiny dog?" to get the user to tell you 
+                // specifically what type mini dog (small mini or tiny mini).
+                if (currentSlot.resolutions.resolutionsPerAuthority[0].values.length > 1) {
+                    let prompt = 'Which would you like';
+                    let size = currentSlot.resolutions.resolutionsPerAuthority[0].values.length;
+                    currentSlot.resolutions.resolutionsPerAuthority[0].values.forEach(function (element, index, arr) {
+                        prompt += ` ${(index == size -1) ? ' or' : ' '} ${element.value.name}`;
+                    });
+
+                    prompt += '?';
+                    let reprompt = prompt;
+                    // In this case we need to disambiguate the value that they 
+                    // provided to us because it resolved to more than one thing so 
+                    // we build up our prompts and then emit elicitSlot.
+                    this.emit(':elicitSlot', currentSlot.name, prompt, reprompt);
+                }
+            } else if (currentSlot.resolutions.resolutionsPerAuthority[0].status.code == 'ER_SUCCESS_NO_MATCH') {
+                // Here is where you'll want to add instrumentation to your code
+                // so you can capture synonyms that you haven't defined.
+                console.log("NO MATCH FOR: ", currentSlot.name, " value: ", currentSlot.value);
+
+                if (REQUIRED_SLOTS.indexOf(currentSlot.name) > -1) {
+                    let prompt = "What " + currentSlot.name + " are you looking for";
+                    this.emit(':elicitSlot', currentSlot.name, prompt, prompt);
+                }
+            }
+        }
+    }, this);
+}
+
+// Given the request an slot name, slotHasValue returns the slot value if one
+// was given for `slotName`. Otherwise returns false.
+function slotHasValue(request, slotName) {
+
+    let slot = request.intent.slots[slotName];
+
+    //uncomment if you want to see the request
+    //console.log("request = "+JSON.stringify(request)); 
+    let slotValue;
+
+    //if we have a slot, get the text and store it into speechOutput
+    if (slot && slot.value) {
+        //we have a value in the slot
+        slotValue = slot.value.toLowerCase();
+        return slotValue;
+    } else {
+        //we didn't get a value in the slot.
+        return false;
+    }
+}
