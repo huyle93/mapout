@@ -1,69 +1,119 @@
 {
-    "intents": [{
-            "intent": "didNotUnderstand"
-        },
+    "intents": [
         {
-            "intent": "getPersonalFinanceIntent"
-        },
-        {
-            "intent": "getInvestingIntent"
-        },
-        {
-            "intent": "getQuickAsk"
-        },
-        {
-            "intent": "getAdvice"
-        },
-        {
-            "intent": "getCryptoPrice",
-            "slots": [{
-                "name": "assetName",
-                "type": "symbol"
-            }]
-        },
-        {
-            "intent": "getAdviceFromIncome",
-            "slots": [{
-                "name": "income",
-                "type": "AMAZON.Number"
-            }]
-        },
-        {
-            "intent": "getAdviceRetirement",
-            "slots": [{
-                    "name": "myincome",
-                    "type": "AMAZON.Number"
-                },
-                {
-                    "name": "myage",
-                    "type": "AMAZON.Number"
-                },
-                {
-                    "name": "contribution",
-                    "type": "AMAZON.Number"
-                }
+            "name": "AMAZON.CancelIntent",
+            "samples": [
+                "cancel",
+                "stop",
+                "quit",
+                "exit",
+                "bye"
             ]
         },
         {
-            "intent": "openAccount"
+            "name": "AMAZON.HelpIntent",
+            "samples": [
+                "help"
+            ]
         },
         {
-            "intent": "getSecret"
+            "name": "AMAZON.StopIntent",
+            "samples": [
+                "stop",
+                "bye",
+                "cancel",
+                "see you later",
+                "exit"
+            ]
         },
         {
-            "intent": "AMAZON.PauseIntent"
-        },
-        {
-            "intent": "AMAZON.ResumeIntent"
-        },
-        {
-            "intent": "AMAZON.HelpIntent"
-        },
-        {
-            "intent": "AMAZON.StopIntent"
-        },
-        {
-            "intent": "AMAZON.CancelIntent"
+            "name": "PlanMyTrip",
+            "slots": [
+                {
+                    "name": "toCity",
+                    "type": "AMAZON.US_CITY",
+                    "samples": [
+                        "i'd like to go to {toCity} ",
+                        "{toCity} ",
+                        "I'd like to visit {toCity} ",
+                        "we're going to {toCity} ",
+                        "i will leave on {travelDate} ",
+                        "I will go to {toCity}  on {travelDate} "
+                    ]
+                },
+                {
+                    "name": "places",
+                    "type": "AMAZON.StreetAddress",
+                    "samples": [
+                        "{places}",
+                        "i want to go {places}",
+                        "i want to go to {places}"
+                    ]
+                },
+                {
+                    "name": "fromCity",
+                    "type": "AMAZON.US_CITY",
+                    "samples": [
+                        "{fromCity} ",
+                        "leaving from {fromCity} ",
+                        "from {fromCity} ",
+                        "my trip starts in {fromCity} "
+                    ]
+                },
+                {
+                    "name": "travelDate",
+                    "type": "AMAZON.DATE",
+                    "samples": [
+                        "{travelDate} ",
+                        "my trips starts {travelDate} ",
+                        "leaving on {travelDate} "
+                    ]
+                },
+                {
+                    "name": "activity",
+                    "type": "LIST_OF_ACTIVITIES"
+                },
+                {
+                    "name": "go_synonyms",
+                    "type": "go_syn_types"
+                },
+                {
+                    "name": "make",
+                    "type": "make_type",
+                    "samples": [
+                        "{make}",
+                        "my car is {make}"
+                    ]
+                },
+                {
+                    "name": "model",
+                    "type": "model_type",
+                    "samples": [
+                        "my car is {make} {model}",
+                        "{model}"
+                    ]
+                },
+                {
+                    "name": "year",
+                    "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                    "samples": [
+                        "{year}",
+                        "the year is {year}",
+                        "it is {year}"
+                    ]
+                }
+            ],
+            "samples": [
+                "I'm going on a trip {travelDate} ",
+                "i want to {go_synonyms} {places}",
+                "I want to {go_synonyms} from {fromCity} to {toCity} {travelDate} ",
+                "Plan a trip",
+                "I'll {go_synonyms} to {places}  on the {travelDate} ",
+                "let's plan a trip",
+                "I will {go_synonyms} to {places}  on the {travelDate} ",
+                "I will {go_synonyms} to {places} from {fromCity} on the {travelDate}",
+                "I will {go_synonyms} to {places} from {fromCity} on the {travelDate} by {make} {model} {year}"
+            ]
         }
     ]
 }

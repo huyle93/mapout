@@ -1,0 +1,497 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "trip advisor",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": [
+                        "cancel",
+                        "stop",
+                        "quit",
+                        "exit",
+                        "bye"
+                    ]
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": [
+                        "help"
+                    ]
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": [
+                        "stop",
+                        "bye",
+                        "cancel",
+                        "see you later",
+                        "exit"
+                    ]
+                },
+                {
+                    "name": "PlanMyTrip",
+                    "slots": [
+                        {
+                            "name": "toCity",
+                            "type": "AMAZON.US_CITY",
+                            "samples": [
+                                "i'd like to go to {toCity} ",
+                                "{toCity} ",
+                                "I'd like to visit {toCity} ",
+                                "we're going to {toCity} ",
+                                "i will leave on {travelDate} ",
+                                "I will go to {toCity}  on {travelDate} "
+                            ]
+                        },
+                        {
+                            "name": "places",
+                            "type": "AMAZON.StreetAddress",
+                            "samples": [
+                                "{places}",
+                                "i want to go {places}",
+                                "i want to go to {places}"
+                            ]
+                        },
+                        {
+                            "name": "fromCity",
+                            "type": "AMAZON.US_CITY",
+                            "samples": [
+                                "{fromCity} ",
+                                "leaving from {fromCity} ",
+                                "from {fromCity} ",
+                                "my trip starts in {fromCity} "
+                            ]
+                        },
+                        {
+                            "name": "travelDate",
+                            "type": "AMAZON.DATE",
+                            "samples": [
+                                "{travelDate} ",
+                                "my trips starts {travelDate} ",
+                                "leaving on {travelDate} "
+                            ]
+                        },
+                        {
+                            "name": "activity",
+                            "type": "LIST_OF_ACTIVITIES"
+                        },
+                        {
+                            "name": "go_synonyms",
+                            "type": "go_syn_types"
+                        },
+                        {
+                            "name": "make",
+                            "type": "make_type",
+                            "samples": [
+                                "{make}",
+                                "my car is {make}"
+                            ]
+                        },
+                        {
+                            "name": "model",
+                            "type": "model_type",
+                            "samples": [
+                                "my car is {make} {model}",
+                                "{model}"
+                            ]
+                        },
+                        {
+                            "name": "year",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "samples": [
+                                "{year}",
+                                "the year is {year}",
+                                "it is {year}"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "I'm going on a trip {travelDate} ",
+                        "i want to {go_synonyms} {places}",
+                        "I want to {go_synonyms} from {fromCity} to {toCity} {travelDate} ",
+                        "Plan a trip",
+                        "I'll {go_synonyms} to {places}  on the {travelDate} ",
+                        "let's plan a trip",
+                        "I will {go_synonyms} to {places}  on the {travelDate} ",
+                        "I will {go_synonyms} to {places} from {fromCity} on the {travelDate}",
+                        "I will {go_synonyms} to {places} from {fromCity} on the {travelDate} by {make} {model} {year}"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "go_syn_types",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "go",
+                                "synonyms": [
+                                    "travel",
+                                    "drive",
+                                    "visit",
+                                    "explore"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "LIST_OF_ACTIVITIES",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "bicycling"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "bike"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "biking"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "camp"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "camping"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "hike"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "hiking"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "race"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "run"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "shop"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "shopping"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "ski"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "skiing"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "surf"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "surfing"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "swim"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "swimming"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "visit relatives"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "visit with friends"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "visit with my relatives"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "concert"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "play"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "make_type",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "honda"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "toyota"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "lexus"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "gmc"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "chevrolet",
+                                "synonyms": [
+                                    "chevy"
+                                ]
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "acura"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "ford"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "bmw"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "audi"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "model_type",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "civic"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "camry"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "corolla"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "accord"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "highlander"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "PlanMyTrip",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "toCity",
+                            "type": "AMAZON.US_CITY",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-toCity"
+                            }
+                        },
+                        {
+                            "name": "places",
+                            "type": "AMAZON.StreetAddress",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-places"
+                            }
+                        },
+                        {
+                            "name": "fromCity",
+                            "type": "AMAZON.US_CITY",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-fromCity"
+                            }
+                        },
+                        {
+                            "name": "travelDate",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-travelDate"
+                            }
+                        },
+                        {
+                            "name": "activity",
+                            "type": "LIST_OF_ACTIVITIES",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        },
+                        {
+                            "name": "go_synonyms",
+                            "type": "go_syn_types",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        },
+                        {
+                            "name": "make",
+                            "type": "make_type",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-make"
+                            }
+                        },
+                        {
+                            "name": "model",
+                            "type": "model_type",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-model"
+                            }
+                        },
+                        {
+                            "name": "year",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-year"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Intent-PlanMyTrip.IntentSlot-toCity",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "which city are you going to?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Intent-PlanMyTrip.IntentSlot-places",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "which place do you want to go?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Intent-PlanMyTrip.IntentSlot-fromCity",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What city are you leaving from?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "where are you starting your trip?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Intent-PlanMyTrip.IntentSlot-travelDate",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "When will you start this trip?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Intent-PlanMyTrip.IntentSlot-make",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "what brand is your car. like toyota, honda"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Intent-PlanMyTrip.IntentSlot-model",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "what is the model of your car. like toyota camry"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Intent-PlanMyTrip.IntentSlot-year",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "what is the year of your car"
+                    }
+                ]
+            }
+        ]
+    }
+}
