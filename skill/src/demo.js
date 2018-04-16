@@ -8,7 +8,7 @@ var https = require('https');
 
 let speechOutput;
 let reprompt;
-const welcomeOutput = "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.";
+const welcomeOutput = "Hello. Your map out is here. I know a lot of information. You can start by saying let's plan a trip.";
 const welcomeReprompt = "Let me know where you'd like to go or when you'd like to go on your trip";
 const tripIntro = [
     "This sounds like a cool trip. ",
@@ -63,12 +63,12 @@ const handlers = {
         var hwympg = 30
         var gasCost = Math.ceil((gasPrice * distancevalue) / hwympg)
         if (myCar.toLowerCase() == theftCar.toLowerCase()) {
-            speechOutput += " The total traveling distance is " + distancetext + " , our estimation for your gas expense is " + gasCost.toString() + " dollar, and " + (gasCost*2).toString() + " for the round trip." + " . Attention, your car is on top of the car stolen list in this state based on Liberty Mutual Insurance's data. Becareful, You would recommend to find a garage to park. I would love to help you, but the Hackathon's time is limited, and we faced some bugs so wait for our coming update. ";
+            speechOutput += " According to the data that I collected, the total traveling distance is " + distancetext + " , our estimation for your gas expense is " + gasCost.toString() + " dollar, and " + (gasCost*2).toString() + "cent" + ". For parking, I recommend SP parking near FenWay Park";
             //say the results
             this.response.speak(speechOutput).listen(speechOutput);
             this.emit(":responseReady");
         } else {
-            speechOutput += " The total traveling distance is " + distancetext + " , our estimation for your gas expense is " + gasCost.toString() + " dollar, and " + (gasCost*2).toString() + " for the round trip." + " . Attention, your car is on top of the car stolen list in this state based on Liberty Mutual Insurance's data " ;
+            speechOutput +=" According to the data that I collected, the total traveling distance is " + distancetext + " , our estimation for your gas expense is " + gasCost.toString() + " dollar, and " + (gasCost*2).toString() +" cent " + ". For parking, I recommend SP parking near FenWay Park";
             var activity = isSlotValid(this.event.request, "activity");
             if (activity) {
                 speechOutput += " to go " + activity;
