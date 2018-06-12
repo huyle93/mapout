@@ -184,13 +184,20 @@ function isSlotValid(request, slotName) {
 }
 
 // ======================== Custom functions ======================= //
+//API KEY
+var geocode_key = config.GEOCODE_KEY;
+var matrix_key = config.MATRIX_KEY;
+var carstats_key = config.CARSTATS_KEY;
+var cartheft_key = config.CARTHEFT_KEY;
+var googleplace_key = config.GOOGLEPLACE_KEY;
+
 // Geocode
 function httpsGet_Geocode(myData, callback) {
     // Update these options with the details of the web service you would like to call
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
-        path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
+        path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=` + geocode_key,
         method: 'GET',
 
         // if x509 certs are required:
@@ -231,7 +238,7 @@ function httpsGet_Matrix(lat, long, callback) {
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
-        path: `/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY`,
+        path: `/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=` + matrix_key,
         method: 'GET',
 
         // if x509 certs are required:
@@ -270,7 +277,7 @@ function httpsGet_CarStats(make, model, year, callback) {
     var options = {
         host: 'apis.solarialabs.com',
         port: 443,
-        path: `/shine/v1/vehicle-stats/specs?make=${make}&model=${model}&year=${year}&full-data=true&apikey=UKxbxhZYNEiP4spThYCy61bwEhRQXlPb`,
+        path: `/shine/v1/vehicle-stats/specs?make=${make}&model=${model}&year=${year}&full-data=true&apikey=` + carstats_key,
         method: 'GET',
 
         // if x509 certs are required:
@@ -308,7 +315,7 @@ function httpsGet_CarTheft(state, callback) {
     var options = {
         host: 'apis.solarialabs.com',
         port: 443,
-        path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=UKxbxhZYNEiP4spThYCy61bwEhRQXlPb`,
+        path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=` + cartheft_key,
         method: 'GET',
 
         // if x509 certs are required:
@@ -367,7 +374,7 @@ function httpsGetmyGoogleplace(lat, lng, rankby, types, rating, callback) {
         host: 'maps.googleapis.com',
         port: 443,
         //path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
-        path: `/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=${rankby}&types=${types}&rating=${rating}&key=AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY`,
+        path: `/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=${rankby}&types=${types}&rating=${rating}&key=` + googleplace_key,
         method: 'GET',
 
         // if x509 certs are required:
