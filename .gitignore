@@ -17,7 +17,6 @@ imageAssets/
 *.m4a
 *.pkf
 *.wav
-*package.json
 
 #ignore this folder [npm install --save alexa-sdk]
 skill/src/fact.js
