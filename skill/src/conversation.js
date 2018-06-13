@@ -1,6 +1,7 @@
 'use-strict'
 /* eslint-disable  func-names */
 /* eslint quote-props: ["error", "consistent"]*/
+require('dotenv').load();
 const Alexa = require('alexa-sdk');
 var https = require('https');
 // 1. Text strings =====================================================================================================
@@ -185,11 +186,10 @@ function isSlotValid(request, slotName) {
 
 // ======================== Custom functions ======================= //
 //API KEY
-var geocode_key = config.GEOCODE_KEY;
-var matrix_key = config.MATRIX_KEY;
-var carstats_key = config.CARSTATS_KEY;
-var cartheft_key = config.CARTHEFT_KEY;
-var googleplace_key = config.GOOGLEPLACE_KEY;
+var geocode_key = process.env.GEOCODE_KEY;
+var matrix_key = process.env.MATRIX_KEY;
+var shine_key = process.env.SHINE_KEY;
+var googleplace_key = process.env.GOOGLEPLACE_KEY;
 
 // Geocode
 function httpsGet_Geocode(myData, callback) {
@@ -277,7 +277,7 @@ function httpsGet_CarStats(make, model, year, callback) {
     var options = {
         host: 'apis.solarialabs.com',
         port: 443,
-        path: `/shine/v1/vehicle-stats/specs?make=${make}&model=${model}&year=${year}&full-data=true&apikey=` + carstats_key,
+        path: `/shine/v1/vehicle-stats/specs?make=${make}&model=${model}&year=${year}&full-data=true&apikey=` + shine_key,
         method: 'GET',
 
         // if x509 certs are required:
@@ -315,7 +315,7 @@ function httpsGet_CarTheft(state, callback) {
     var options = {
         host: 'apis.solarialabs.com',
         port: 443,
-        path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=` + cartheft_key,
+        path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=` + shine_key,
         method: 'GET',
 
         // if x509 certs are required:
