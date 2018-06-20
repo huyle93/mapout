@@ -54,7 +54,7 @@ const handlers = {
         var make = this.event.request.intent.slots.make.value;
         var model = this.event.request.intent.slots.model.value;
         var year = this.event.request.intent.slots.year.value;
-        speechOutput += " from " + fromCity + " to " + address + " , " + toCity + " on " + travelDate + ".";
+        speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}`
 
         // Calling API
         httpsGet_Geocode(address, (geocode) => {
@@ -65,7 +65,7 @@ const handlers = {
                 var distancetext = matrix[1]
                 var durationvalue = matrix[2] // int
                 var durationtext = matrix[3]
-                httpsGet_CarStats(make, model, year, (stats) => {
+                httpsGetStats(make, model, year, (stats) => {
                     var ctympg = stats[0] // int
                     var hwympg = stats[1] // int
                     httpsGet_CarTheft('ma', (car) => {
@@ -78,7 +78,7 @@ const handlers = {
                         var gasPrice = get_price(lat, long)
                         var gasCost = Math.ceil((gasPrice * distancevalue) / hwympg)
                         if (myCar.toLowerCase() == theftCar.toLowerCase()) {
-                            speechOutput += " The total traveling distance is " + distancetext + " However, your car is on top of the car stolen list in this state. Becareful, I would recommend to find a garage to park.";
+                            speechOutput += `Based on the information that you've given, the total distance of will be ${distancetext}. For gas expense, our estimation based on the traveling distance is ${gasPrice}`
                             var activity = isSlotValid(this.event.request, "activity");
                             if (activity) {
                                 speechOutput += " to go " + activity;
@@ -88,7 +88,7 @@ const handlers = {
                             this.response.speak(speechOutput);
                             this.emit(":responseReady");
                         }
-                        speechOutput += " The total traveling distance is " + distancetext + ", it will take around " + durationtext + " to go there. Your car ";
+                        speechOutput +=  `The total traveling distance is ${distancetext} , and based on the traveling distance, the estimate time that you'll arrive to your destination is ${durationtext} `;
                         var activity = isSlotValid(this.event.request, "activity");
                         if (activity) {
                             speechOutput += " to go " + activity;
@@ -272,42 +272,36 @@ function httpsGet_Matrix(lat, long, callback) {
 
 }
 // Shine Car Stats
-function httpsGet_CarStats(make, model, year, callback) {
-    // Update these options with the details of the web service you would like to call
-    var options = {
-        host: 'apis.solarialabs.com',
-        port: 443,
-        path: `/shine/v1/vehicle-stats/specs?make=${make}&model=${model}&year=${year}&full-data=true&apikey=` + shine_key,
-        method: 'GET',
+function httpsGetStats(make, model, year, callback){
+    var stats_options = {
+      host: 'apis.solarialabs.com',
+      path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
+      method: 'GET'
+    }
 
-        // if x509 certs are required:
-        // key: fs.readFileSync('certs/my-key.pem'),
-        // cert: fs.readFileSync('certs/my-cert.pem')
-    };
+    var req = https.request(stats_options, function(res) {
+    res.setEncoding('utf-8');
 
-    var req = https.request(options, res => {
-        res.setEncoding('utf8');
-        var returnData = "";
+    var responseString = '';
 
-        res.on('data', chunk => {
-            returnData = returnData + chunk;
-        });
-
-        res.on('end', () => {
-            // we have now received the raw return data in the returnData variable.
-            // We can see it in the log output via:
-            // console.log(JSON.stringify(returnData))
-            // we may need to parse through it to extract the needed data
-            var data = JSON.parse(returnData);
-            var citygas = data[0].City_Conventional_Fuel
-            var hwygas = data[0].Hwy_Conventional_Fuel
-            callback([citygas, citygas]);
-            // this will execute whatever function the caller defined, with one argument
-        });
+    res.on('data', function(data) {
+        responseString += data;
     });
-    req.end();
 
-}
+    res.on('end', function() {
+        var response = JSON.parse(responseString);
+        var stats_make = response[0].Make
+        var stats_model = response[0].Model
+        var stats_car_year = response[0].Model_Year
+        var stats_car_mpg = response[0].City_Conventional_Fuel
+
+        console.log( "Model Year of the " + stats_make + " " + stats_model + " is: " + stats_car_year + ". The combined highway and city MPG is " + stats_car_mpg + ".");
+        callback([stats_car_year, stats_car_mpg]);
+    });
+    });
+
+    req.end();
+  }
 // Shine Car Theft 
 function httpsGet_CarTheft(state, callback) {
     // Update these options with the details of the web service you would like to call
