@@ -3,8 +3,8 @@ junk/
 
 #ignore this file type
 .DS_Store
-.config.js
 package-lock.json
+.env
 
 #ignore this folder which store image files for metadata production usage
 imageAssets/
