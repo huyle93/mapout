@@ -430,7 +430,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "which city are you going to?"
+                        "value": "Which city or town are you going to?"
                     }
                 ]
             },
@@ -439,7 +439,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "which place do you want to go?"
+                        "value": "What place would you like to visit?"
                     }
                 ]
             },
@@ -448,11 +448,11 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "What city are you leaving from?"
+                        "value": "What city or town are you leaving from?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "where are you starting your trip?"
+                        "value": "Where will you be starting your trip from?"
                     }
                 ]
             },
@@ -470,7 +470,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "what brand is your car. like toyota, honda"
+                        "value": "Great! Let me get some information about your car to give you some estimations about your trip. What brand is your car? Something like Toyota or Honda"
                     }
                 ]
             },
@@ -479,7 +479,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "what is the model of your car. like toyota camry"
+                        "value": "What is the model of your car? Such as a Camry or Civic."
                     }
                 ]
             },
@@ -488,7 +488,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "what is the year of your car"
+                        "value": "What is the model year of your car?"
                     }
                 ]
             }

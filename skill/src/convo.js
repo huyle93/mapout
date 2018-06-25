@@ -2,12 +2,14 @@
 /* eslint-disable  func-names */
 /* eslint quote-props: ["error", "consistent"]*/
 
-const Alexa = require('alexa-sdk');
+//const Alexa = require('alexa-sdk');
 var https = require('https');
 // 1. Text strings =====================================================================================================
 //    Modify these strings and messages to change the behavior of your Lambda function
 
-let speechOutput;
+let speechOutput = "";
+var myCoordinates = [43.1389480, -70.9370250]
+/*
 let reprompt;
 const welcomeOutput = "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.";
 const welcomeReprompt = "Let me know where you'd like to go or when you'd like to go on your trip";
@@ -21,7 +23,7 @@ const tripIntro = [
 
 // 2. Skill Code =======================================================================================================
 
-const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
+
 var myCoordinates = [43.1389480, -70.9370250]
 const handlers = {
     'LaunchRequest': function () {
@@ -41,9 +43,10 @@ const handlers = {
         if (travelMode) {
             speechOutput += travelMode;
         } else {
+        */
             speechOutput += "You'll go ";
+        /*
         }
-
         //Now let's recap the trip
         //Validate info
         var fromCity = this.event.request.intent.slots.fromCity.value;
@@ -53,10 +56,19 @@ const handlers = {
         var make = this.event.request.intent.slots.make.value;
         var model = this.event.request.intent.slots.model.value;
         var year = this.event.request.intent.slots.year.value;
-        speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}`
+*/
+
+        var fromCity = "boston";
+        var toCity = "durham";
+        var travelDate = "today";
+        var address = "fenway";
+        var make = "honda";
+        var model = "civic";
+        var year = 2013;
+        speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}.`
 
         // Calling API
-        httpsGet_Geocode(address, function geocode(geo_lat, geo_long) {
+        httpsGetgeocode(address, function geocode(geo_lat, geo_long) {
             var lat = geo_lat // int
             var long = geo_long // int
             httpsGet_Matrix(lat, long, function matrix(mat_dis_val, mat_dis_txt, mat_dur_val, mat_dur_txt) {
@@ -77,31 +89,34 @@ const handlers = {
                         //var gasPrice = get_price(lat, long)
                         //var gasCost = Math.ceil((gasPrice * distancevalue) / hwympg)
                         if (myCar.toLowerCase() == theftCar.toLowerCase()) {
-                            speechOutput += `Based on the information that you've given, the total distance of will be ${distancetext}`
-                            var activity = isSlotValid(this.event.request, "activity");
-                            if (activity) {
-                                speechOutput += " to go " + activity;
-                            }
+                            speechOutput += ` Based on the information that you've given, the total distance of will be ${distancetext}. and based on the traveling distance, the estimate time that you'll arrive to your destination is ${durationtext} `
+                            //var activity = isSlotValid(this.event.request, "activity");
+                            //if (activity) {
+                                //speechOutput += " to go " + activity;
+                            //}
+
                             //say the results
-                            this.response.speak(speechOutput);
-                            this.emit(":responseReady");
-        }
-                        
-                        speechOutput +=  `The Latitude is lat `;
-                        var activity = isSlotValid(this.event.request, "activity");
-                        if (activity) {
-                            speechOutput += " to go " + activity;
+                            //this.response.speak(speechOutput);
+                          //  this.emit(":responseReady");
+                          console.log(speechOutput)
                         }
+                        else {
+                          speechOutput +=  `The total traveling distance is ${distancetext} , and based on the traveling distance, the estimate time that you'll arrive to your destination is ${durationtext} `;
+                      }
+                        //var activity = isSlotValid(this.event.request, "activity");
+                        //if (activity) {
+                        //    speechOutput += " to go " + activity;
+                      //  }
 
                         //say the results
-                        this.response.speak(speechOutput);
-                        this.emit(":responseReady");
+                      //  this.response.speak(speechOutput);
+                      //  this.emit(":responseReady");
+                      //console.log(speechOutput)
                     })
                 })
             })
         });
-
-    },
+    /*
     'AMAZON.HelpIntent': function () {
         speechOutput = "";
         reprompt = "";
@@ -123,8 +138,9 @@ const handlers = {
         this.response.speak(speechOutput);
         this.emit(':responseReady');
     },
-};
+    */
 
+/*
 exports.handler = (event, context) => {
     var alexa = Alexa.handler(event, context);
     alexa.appId = APP_ID;
@@ -182,17 +198,25 @@ function isSlotValid(request, slotName) {
         return false;
     }
 }
+*/
 
 // ======================== Custom functions ======================= //
 //API KEY
+var geocode_key = "AIzaSyCtl6MSQyU4kCsb5VfTLk-UK_B72oVYlwM";
 var matrix_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
 var shine_key = "UKxbxhZYNEiP4spThYCy61bwEhRQXlPb";
 var googleplace_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
-var google_key = "AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs";
 
 // Geocode
-function httpsGet_Geocode(myData, callback) {
+//httpsGetgeocode(address, (myResult) => {
+    //Uncomment this line to test
+    //console.log("sent     : " + address);
+  //  console.log("received : " + myResult);
+//});
+
+function httpsGetgeocode(myData, callback) {
     // Update these options with the details of the web service you would like to call
+    var google_key = "AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs"
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
@@ -216,8 +240,8 @@ function httpsGet_Geocode(myData, callback) {
             // console.log(JSON.stringify(returnData))
             // we may need to parse through it to extract the needed data
             var pop = JSON.parse(returnData);
-            var lat = Number(pop.results[0].geometry.location.lat);
-            var lng = Number(pop.results[0].geometry.location.lng);
+            var lat = Number(pop.results[0].geometry.location.lat)
+            var lng = Number(pop.results[0].geometry.location.lng)
             callback(lat, lng);
             // this will execute whatever function the caller defined, with one argument
         });
@@ -268,35 +292,37 @@ function httpsGet_Matrix(lat, long, callback) {
 
 // Shine Car Stats
 function httpsGetStats(make, model, year, callback){
-    var stats_options = {
-      host: 'apis.solarialabs.com',
-      path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
-      method: 'GET'
-    }
-
-    var req = https.request(stats_options, function(res) {
-    res.setEncoding('utf-8');
-
-    var responseString = '';
-
-    res.on('data', function(data) {
-        responseString += data;
-    });
-
-    res.on('end', function() {
-        var response = JSON.parse(responseString);
-        var stats_make = response[0].Make
-        var stats_model = response[0].Model
-        var stats_car_year = response[0].Model_Year
-        var stats_car_mpg = response[0].City_Conventional_Fuel
-
-        //console.log( "Model Year of the " + stats_make + " " + stats_model + " is: " + stats_car_year + ". The combined highway and city MPG is " + stats_car_mpg + ".");
-        callback(stats_car_year, stats_car_mpg);
-    });
-    });
-
-    req.end();
+  var stats_options = {
+    host: 'apis.solarialabs.com',
+    path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
+    method: 'GET'
   }
+
+  var req = https.request(stats_options, function(res) {
+  res.setEncoding('utf-8');
+
+  var returnData = '';
+
+  res.on('data', chunk => {
+      returnData = returnData + chunk;
+  });
+
+ //console.log(returnData)
+
+  res.on('end', function() {
+      var response = JSON.parse(returnData);
+      var stats_make = response[0].Make
+      var stats_model = response[0].Model
+      var stats_car_year = response[0].Model_Year
+      var stats_car_mpg = response[0].City_Conventional_Fuel
+
+      //console.log( "Model Year of the " + stats_make + " " + stats_model + " is: " + stats_car_year + ". The combined highway and city MPG is " + stats_car_mpg + ".");
+      callback(stats_car_year, stats_car_mpg);
+  });
+  });
+  req.end();
+}
+
 // Shine Car Theft
 function httpsGet_CarTheft(state, callback) {
     // Update these options with the details of the web service you would like to call
