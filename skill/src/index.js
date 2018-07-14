@@ -49,11 +49,10 @@ const handlers = {
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
-        var make = this.event.request.intent.slots.make.value;
-        var model = this.event.request.intent.slots.model.value;
-        var year = this.event.request.intent.slots.year.value;
+       // var make = this.event.request.intent.slots.make.value;
+       // var model = this.event.request.intent.slots.model.value;
+       // var year = this.event.request.intent.slots.year.value;
         speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}. `
-
         // Calling API
         httpsGet_Geocode(address, (geocode) => {
             var lat = geocode[0] // int
@@ -63,14 +62,24 @@ const handlers = {
                 var distancetext = matrix[1]
                 var durationvalue = matrix[2] // int
                 var durationtext = matrix[3]
-                httpsGetStats(make, model, year, (stats) => {
+                httpsGetStats('toyota', `camry`, 2011, (stats) => {
                   var year = stats[0] // int
                   var hwympg = stats[1] // int
+                  httpsGetmyGoogleplace(lat, long, 'distance', 'parking', (place) => {
+                      type = place[2]
+                      name = place[4]
+                      get_price(lat, long, (gasfeed) => {
+                          price = gasfeed[0]
                   speechOutput +=  "The Lat is " + lat + " the long is " + long;
                   speechOutput += ". It will take " + durationtext + " to get there and be a distance of " + distancetext;
-                  speechOutput += ". The year is " + year + " the mpg is " + hwympg
+                  speechOutput += ". The year of your car is " + year + " the mpg is " + hwympg
+                  speechOutput += ` the type of parking around that is  ${type} and it name is ${name} `
+                  speechOutput += `the gas price near this area will be ${price}`
+                 // speechOutput += `test ${make} model ${model} year ${year}`
                   this.response.speak(speechOutput);
                   this.emit(":responseReady");
+                      })
+                  })
               })
             })
         });
@@ -245,8 +254,7 @@ function httpsGetStats(make, model, year, callback){
     var stats_options = {
       host: 'apis.solarialabs.com',
       path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
-      method: 'GET',
-      ciphers: 'DES-CBC3-SHA',
+      method: 'GET'
     }
 
     var req = https.request(stats_options, function(res) {
@@ -311,7 +319,7 @@ function httpsGet_CarTheft(state, callback) {
 
 }
 // MyGasFeed
-function get_price(lat, lng) {
+function get_price(lat, lng, callback) {
     let request = require('request')
     let options = {
         "url": `http://devapi.mygasfeed.com/stations/radius/${lat}/${lng}/5/reg/price/rfej9napna.json`,
@@ -324,21 +332,20 @@ function get_price(lat, lng) {
     request(options, (err, resp, body) => {
         //go through the address components and geometry components.
         var data = JSON.parse(body);
-
         var result = data.stations[0].reg_price;
-        return result;
+        callback([result])
     })
 
 }
 
 // GooglePlace
-function httpsGetmyGoogleplace(lat, lng, rankby, types, rating, callback) {
+function httpsGetmyGoogleplace(lat, lng, rankby, types, callback) {
     // Update these options with the details of the web service you would like to call
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
         //path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
-        path: `/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=${rankby}&types=${types}&rating=${rating}&key=` + googleplace_key,
+        path: `/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=${rankby}&types=${types}&key=` + googleplace_key,
         method: 'GET',
 
         // if x509 certs are required:
@@ -360,14 +367,13 @@ function httpsGetmyGoogleplace(lat, lng, rankby, types, rating, callback) {
             // We can see it in the log output via:
             // console.log(JSON.stringify(returnData))
             // we may need to parse through it to extract the needed
-            var returnObj = []
             var pop = JSON.parse(returnData);
+            var name = pop.results[0].name
             var lat = Number(pop.results[0].geometry.location.lat);
             var lng = Number(pop.results[0].geometry.location.lng);
             var types = pop.results[0].types;
             var rate = pop.results[0].rating;
-            returnObj.push([lat, lng, types, rate])
-            callback(null, returnObj);
+            callback([lat, lng, types, rate, name]);
             //var long = Number(pop.results[0].geometry.location.lng)
             //var type = pop.results[0].rating;
             //callback(long);
