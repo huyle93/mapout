@@ -30,6 +30,12 @@
                     ]
                 },
                 {
+                    "name": "GetPermissionsCardIntent",
+                    "samples": [
+                        "add permissions"
+                    ]
+                },
+                {
                     "name": "PlanMyTrip",
                     "slots": [
                         {
