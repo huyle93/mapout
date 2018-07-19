@@ -65,56 +65,38 @@ const handlers = {
         var make = "honda";
         var model = "civic";
         var year = 2013;
-        speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}.`
+        speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}. `
 
         // Calling API
-        httpsGetgeocode(address, function geocode(geo_lat, geo_long) {
-            var lat = geo_lat // int
-            var long = geo_long // int
-            httpsGet_Matrix(lat, long, function matrix(mat_dis_val, mat_dis_txt, mat_dur_val, mat_dur_txt) {
-                var distancevalue = mat_dis_val // int
-                var distancetext = mat_dis_txt
-                var durationvalue = mat_dur_val // int
-                var durationtext = mat_dur_txt
-                httpsGetStats(make, model, year, function stats(year, mpg) {
-                    var caryear= year // int
-                    var hwympg = mpg // int
-                    httpsGet_CarTheft('ma', function car( t_make, t_model ) {
-                        var theftCarMake = t_make
-                        var theftCarModel = t_model
-                        var theftCar = `${t_make} ${t_model}`
-                        //
-                        var myCar = `${make} ${model}`
-                        // gas price int
-                        //var gasPrice = get_price(lat, long)
-                        //var gasCost = Math.ceil((gasPrice * distancevalue) / hwympg)
-                        if (myCar.toLowerCase() == theftCar.toLowerCase()) {
-                            speechOutput += ` Based on the information that you've given, the total distance of will be ${distancetext}. and based on the traveling distance, the estimate time that you'll arrive to your destination is ${durationtext} `
-                            //var activity = isSlotValid(this.event.request, "activity");
-                            //if (activity) {
-                                //speechOutput += " to go " + activity;
-                            //}
-
-                            //say the results
-                            //this.response.speak(speechOutput);
-                          //  this.emit(":responseReady");
-                          console.log(speechOutput)
-                        }
-                        else {
-                          speechOutput +=  `The total traveling distance is ${distancetext} , and based on the traveling distance, the estimate time that you'll arrive to your destination is ${durationtext} `;
-                      }
-                        //var activity = isSlotValid(this.event.request, "activity");
-                        //if (activity) {
-                        //    speechOutput += " to go " + activity;
-                      //  }
-
-                        //say the results
-                      //  this.response.speak(speechOutput);
-                      //  this.emit(":responseReady");
-                      //console.log(speechOutput)
-                    })
-                })
+        httpsGet_Geocode(address, (geocode) => {
+          var lat = geocode[0] // int
+          var long = geocode[1] // int
+          httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => {
+            var parking_lat = place[0]
+            var parking_long = place[1]
+            var parking_rating = place[2]
+            var parking_name = place[3]
+            httpsGet_Matrix(parking_lat, parking_long, (matrix) => {
+              var distancevalue = Number(matrix[0]) // int
+              var distancetext = matrix[1]
+              var durationvalue = matrix[2] // int
+              var durationtext = matrix[3]
+              httpsGetStats("honda", "civic", "2013", (stats) => {
+                var year = stats[0] // int
+                var mpg = Number(stats[1])
+                var gasPrice = Number(get_price(myCoordinates[0], myCoordinates[1]))
+                var gasCost = Math.ceil((gasPrice * distancevalue) / mpg)
+                //speechOutput = this.event.context.System.apiAccessToken;
+                //speechOutput += `Your car is a ${year} ${make} ${model}. `
+                speechOutput +=  "The Lat is " + lat + " the long is " + long;
+                speechOutput += ". It will take " + durationtext + " to get there and be a distance of " + distancetext;
+                speechOutput += ". Year is " + year + " mpg is " + mpg
+                speechOutput += ". The closest parking garage to " + address + " is " + parking_name + " the rating is " + parking_rating;
+                speechOutput += ". The cost of gas will be " + gasCost + "one way or " + (gasCost*2) + " roundtrip."
+                console.log(speechOutput)
+              })
             })
+          })
         });
     /*
     'AMAZON.HelpIntent': function () {
@@ -202,21 +184,17 @@ function isSlotValid(request, slotName) {
 
 // ======================== Custom functions ======================= //
 //API KEY
-var geocode_key = "AIzaSyCtl6MSQyU4kCsb5VfTLk-UK_B72oVYlwM";
+// ======================== Custom functions ======================= //
+//API KEY
 var matrix_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
 var shine_key = "UKxbxhZYNEiP4spThYCy61bwEhRQXlPb";
 var googleplace_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
+var google_key = "AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs";
+var gas_key = "0tsuii9i8o";
 
 // Geocode
-//httpsGetgeocode(address, (myResult) => {
-    //Uncomment this line to test
-    //console.log("sent     : " + address);
-  //  console.log("received : " + myResult);
-//});
-
-function httpsGetgeocode(myData, callback) {
+function httpsGet_Geocode(myData, callback) {
     // Update these options with the details of the web service you would like to call
-    var google_key = "AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs"
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
@@ -240,9 +218,9 @@ function httpsGetgeocode(myData, callback) {
             // console.log(JSON.stringify(returnData))
             // we may need to parse through it to extract the needed data
             var pop = JSON.parse(returnData);
-            var lat = Number(pop.results[0].geometry.location.lat)
-            var lng = Number(pop.results[0].geometry.location.lng)
-            callback(lat, lng);
+            var lat = Number(pop.results[0].geometry.location.lat);
+            var lng = Number(pop.results[0].geometry.location.lng);
+            callback([lat, lng]);
             // this will execute whatever function the caller defined, with one argument
         });
     });
@@ -261,7 +239,6 @@ function httpsGet_Matrix(lat, long, callback) {
         port: 443,
         path: `/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=` + matrix_key,
         method: 'GET',
-
         // if x509 certs are required:
         // key: fs.readFileSync('certs/my-key.pem'),
         // cert: fs.readFileSync('certs/my-cert.pem')
@@ -283,7 +260,7 @@ function httpsGet_Matrix(lat, long, callback) {
             var distancetext = data.rows[0].elements[0].distance.text;
             var durationvalue = data.rows[0].elements[0].duration.value;
             var durationtext = data.rows[0].elements[0].duration.text;
-            callback(distancevalue, distancetext, durationvalue, durationtext);
+            callback([distancevalue, distancetext, durationvalue, durationtext]);
             // this will execute whatever function the caller defined, with one argument
         });
     });
@@ -301,27 +278,22 @@ function httpsGetStats(make, model, year, callback){
   var req = https.request(stats_options, function(res) {
   res.setEncoding('utf-8');
 
-  var returnData = '';
+  var responseString = '';
 
-  res.on('data', chunk => {
-      returnData = returnData + chunk;
+  res.on('data', function(data) {
+      responseString += data;
   });
 
- //console.log(returnData)
 
-  res.on('end', function() {
-      var response = JSON.parse(returnData);
-      var stats_make = response[0].Make
-      var stats_model = response[0].Model
-      var stats_car_year = response[0].Model_Year
-      var stats_car_mpg = response[0].City_Conventional_Fuel
-
-      //console.log( "Model Year of the " + stats_make + " " + stats_model + " is: " + stats_car_year + ". The combined highway and city MPG is " + stats_car_mpg + ".");
-      callback(stats_car_year, stats_car_mpg);
-  });
-  });
-  req.end();
-}
+      res.on('end', function() {
+          var response = JSON.parse(responseString);
+          var stats_car_year = response[0].Model_Year
+          var stats_car_mpg = response[0].City_Conventional_Fuel
+          callback([stats_car_year, stats_car_mpg]);
+        })
+      })
+      req.end();
+  }
 
 // Shine Car Theft
 function httpsGet_CarTheft(state, callback) {
@@ -332,7 +304,6 @@ function httpsGet_CarTheft(state, callback) {
         port: 443,
         path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=` + shine_key,
         method: 'GET',
-
         // if x509 certs are required:
         // key: fs.readFileSync('certs/my-key.pem'),
         // cert: fs.readFileSync('certs/my-cert.pem')
@@ -355,17 +326,18 @@ function httpsGet_CarTheft(state, callback) {
             var make = data[0].Make
             var model = data[0].Model
             // this will execute whatever function the caller defined, with one argument
-            callback(make, model);
+            callback(null, make, model);
         });
     });
     req.end();
 
 }
-// MyGasFeed
-function get_price(lat, lng) {
+
+// MyGasFeed gets average price of gas around the starting location
+function get_price( lat,long ){
     let request = require('request')
     let options = {
-        "url": `http://devapi.mygasfeed.com/stations/radius/${lat}/${lng}/5/reg/price/rfej9napna.json`,
+        "url": `http://api.mygasfeed.com/stations/radius/${lat}/${long}/5/reg/price/${gas_key}.json`,
         "method": "GET",
         "qs": {
             //"address": "2+old+english+village+apt+110",
@@ -375,55 +347,41 @@ function get_price(lat, lng) {
     request(options, (err, resp, body) => {
         //go through the address components and geometry components.
         var data = JSON.parse(body);
-
-        var result = data.stations[0].reg_price;
-        return result;
+        //console.log(data)
+        var sum_price = 0;
+        for(var i = 0; i < data.stations.length; i++)
+        {
+          sum_price += Number(data.stations[i].reg_price)
+        }
+        console.log(sum_price)
+        console.log(data.stations.length)
+        var avg_price = (sum_price/data.stations.length)
+        console.log(avg_price)
+        return avg_price;
     })
-
 }
 
 // GooglePlace
-function httpsGetmyGoogleplace(lat, lng, rankby, types, rating, callback) {
-    // Update these options with the details of the web service you would like to call
+function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
-        //path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
-        path: `/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=${rankby}&types=${types}&rating=${rating}&key=` + googleplace_key,
+        path: '/maps/api/place/nearbysearch/json?location=' + lat + ',' + long + '&rankby=' + rankby + '&type=' + types + '&key=' + googleplace_key,
         method: 'GET',
-
-        // if x509 certs are required:
-        // key: fs.readFileSync('certs/my-key.pem'),
-        // cert: fs.readFileSync('certs/my-cert.pem')
     };
-
-
     var req = https.request(options, res => {
         res.setEncoding('utf8');
         var returnData = "";
-
         res.on('data', chunk => {
             returnData = returnData + chunk;
         });
-
         res.on('end', () => {
-            // we have now received the raw return data in the returnData variable.
-            // We can see it in the log output via:
-            // console.log(JSON.stringify(returnData))
-            // we may need to parse through it to extract the needed
-            var returnObj = []
             var pop = JSON.parse(returnData);
+            var name = pop.results[0].name;
             var lat = Number(pop.results[0].geometry.location.lat);
             var lng = Number(pop.results[0].geometry.location.lng);
-            var types = pop.results[0].types;
             var rate = pop.results[0].rating;
-            returnObj.push(lat, lng, types, rate)
-            callback(returnObj);
-            //var long = Number(pop.results[0].geometry.location.lng)
-            //var type = pop.results[0].rating;
-            //callback(long);
-            //callback(type);
-            // this will execute whatever function the caller defined, with one argument
+            callback([lat, long, rate, name])
         });
     });
     req.end();

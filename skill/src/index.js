@@ -3,6 +3,9 @@
 /* eslint quote-props: ["error", "consistent"]*/
 const Alexa = require('alexa-sdk');
 var https = require('https');
+var async = require('asyncawait/async');
+var await = require('asyncawait/await');
+
 // 1. Text strings =====================================================================================================
 //    Modify these strings and messages to change the behavior of your Lambda function
 
@@ -15,19 +18,44 @@ const tripIntro = [
     "This will be fun. ",
     "Oh, I like this trip. "
 ];
-
+var starting_state = "MA";
+var city = "Andover";
+var countryCode = "US";
+var postalCode = 01810;
+var addressLine1 = "21 Noel Rd";
+var addressLine2 = "";
+var addressLine3 = "";
+var districtOrCounty =  "";
 
 
 // 2. Skill Code =======================================================================================================
 
 const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
-var myCoordinates = [43.1389480, -70.9370250]
+var myCoordinates = []
 const handlers = {
     'LaunchRequest': function () {
         this.response.speak(welcomeOutput).listen(welcomeReprompt);
         this.emit(':responseReady');
     },
     'PlanMyTrip': function () {
+        //get current addressLine1
+        var getAddr = GetCurrentAddress.call( this, (addr_info) => {
+            starting_state = addr_info[0];
+            city = addr_info[1];
+            countryCode = addr_info[2];
+            postalCode = addr_info[3];
+            addressLine1 = addr_info[4];
+            addressLine2 = addr_info[5];
+            addressLine3 = addr_info[6];
+            districtOrCounty =  addr_info[7];
+        });
+
+        var start_addr = `${addressLine1} ${city} ${starting_state}`
+
+        httpsGet_Geocode(start_addr, (start_geocode) => {
+          myCoordinates = [start_geocode[0],start_geocode[1]]
+        })
+
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
 
@@ -56,23 +84,36 @@ const handlers = {
 
         // Calling API
         httpsGet_Geocode(address, (geocode) => {
-            var lat = geocode[0] // int
-            var long = geocode[1] // int
+          var lat = geocode[0] // int
+          var long = geocode[1] // int
+          httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => {
+            var parking_lat = place[0]
+            var parking_long = place[1]
+            var parking_rating = place[2]
+            var parking_name = place[3]
             httpsGet_Matrix(lat, long, (matrix) => {
-                var distancevalue = matrix[0] // int
-                var distancetext = matrix[1]
-                var durationvalue = matrix[2] // int
-                var durationtext = matrix[3]
-                httpsGetStats(make, model, year, (stats) => {
-                  var year = stats[0] // int
-                  var hwympg = stats[1] // int
-                  speechOutput +=  "The Lat is " + lat + " the long is " + long;
-                  speechOutput += ". It will take " + durationtext + " to get there and be a distance of " + distancetext;
-                  speechOutput += ". The year is " + year + " the mpg is " + hwympg
+              var distancevalue = matrix[0] // int
+              var distancetext = matrix[1]
+              var durationvalue = matrix[2] // int
+              var durationtext = matrix[3]
+              httpsGetStats("honda", "civic", "2013", (stats) => {
+                var year = stats[0] // int
+                var mpg = stats[1]
+                get_price(myCoordinates[0], myCoordinates[1], (price) => {
+                  var gasPrice = price[0];
+                  var distance = getMiles(distancevalue);
+                  var gasCost = Math.ceil((gasPrice * distance) / 22)
+                  speechOutput +=  ". The Lat is " + lat + " the long is " + long;
+                  speechOutput += ". It will take " + durationtext + " to get there and be a distance of " + distancetext + " (" + distance + ")";
+                  speechOutput += ". Year is " + year + " mpg is " + mpg
+                  speechOutput += ". The closest parking garage to " + address + " is " + parking_name + " the rating is " + parking_rating;
+                  speechOutput += ". The cost of gas will be $" + gasCost + " one way or $" + (gasCost*2) + " roundtrip."
                   this.response.speak(speechOutput);
-                  this.emit(":responseReady");
+                  this.emit(":responseReady")
+                })
               })
             })
+          })
         });
     },
     'AMAZON.HelpIntent': function () {
@@ -156,12 +197,46 @@ function isSlotValid(request, slotName) {
     }
 }
 
+function GetCurrentAddress(callback) {
+    if(this.event.context.System.user.permissions) {
+      const token = this.event.context.System.user.permissions.consentToken;
+      const apiEndpoint = this.event.context.System.apiEndpoint;
+      const deviceId = this.event.context.System.device.deviceId;
+      const das = new Alexa.services.DeviceAddressService();
+
+      das.getFullAddress(deviceId, apiEndpoint, token)
+      .then((data) => {
+        var starting_state = data.stateOrRegion;
+        var city = data.city;
+        var countryCode = data.countryCode;
+        var postalCode = data.postalCode;
+        var addressLine1 = data.addressLine1;;
+        var addressLine2 = data.addressLine2;
+        var addressLine3 = data.addressLine3;
+        var districtOrCounty =  data.districtOrCounty;
+        callback([starting_state, city, countryCode, postalCode, addressLine1, addressLine2, addressLine3, districtOrCounty])
+      })
+      .catch((error) => {
+          this.response.speak('I\'m sorry. Something went wrong.');
+          this.emit(':responseReady');
+          console.log(error.message);
+      });
+  } else {
+      this.response.speak('Please grant skill permissions to access your device address through the Alexa app.');
+      const permissions = ['read::alexa:device:all:address'];
+      this.response.askForPermissionsConsentCard(permissions);
+      console.log("Response: " + JSON.stringify(this.response));
+      this.emit(':responseReady');
+  }
+}
+
 // ======================== Custom functions ======================= //
 //API KEY
 var matrix_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
 var shine_key = "UKxbxhZYNEiP4spThYCy61bwEhRQXlPb";
 var googleplace_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
 var google_key = "AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs";
+var gas_key = "0tsuii9i8o";
 
 // Geocode
 function httpsGet_Geocode(myData, callback) {
@@ -171,7 +246,6 @@ function httpsGet_Geocode(myData, callback) {
         port: 443,
         path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=` + google_key,
         method: 'GET',
-        ciphers: 'DES-CBC3-SHA',
         // if x509 certs are required:
         // key: fs.readFileSync('certs/my-key.pem'),
         // cert: fs.readFileSync('certs/my-cert.pem')
@@ -211,7 +285,6 @@ function httpsGet_Matrix(lat, long, callback) {
         port: 443,
         path: `/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=` + matrix_key,
         method: 'GET',
-        ciphers: 'DES-CBC3-SHA',
         // if x509 certs are required:
         // key: fs.readFileSync('certs/my-key.pem'),
         // cert: fs.readFileSync('certs/my-cert.pem')
@@ -242,36 +315,32 @@ function httpsGet_Matrix(lat, long, callback) {
 
 // Shine Car Stats
 function httpsGetStats(make, model, year, callback){
-    var stats_options = {
-      host: 'apis.solarialabs.com',
-      path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
-      method: 'GET',
-      ciphers: 'DES-CBC3-SHA',
-    }
-
-    var req = https.request(stats_options, function(res) {
-    res.setEncoding('utf-8');
-
-    var responseString = '';
-
-    res.on('data', function(data) {
-        responseString += data;
-    });
-
-    res.on('end', function() {
-        var response = JSON.parse(responseString);
-        var stats_make = response[0].Make
-        var stats_model = response[0].Model
-        var stats_car_year = response[0].Model_Year
-        var stats_car_mpg = response[0].City_Conventional_Fuel
-
-        //console.log( "Model Year of the " + stats_make + " " + stats_model + " is: " + stats_car_year + ". The combined highway and city MPG is " + stats_car_mpg + ".");
-        callback([stats_car_year, stats_car_mpg]);
-    });
-    });
-
-    req.end();
+  var stats_options = {
+    host: 'apis.solarialabs.com',
+    path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
+    method: 'GET'
   }
+
+  var req = https.request(stats_options, function(res) {
+  res.setEncoding('utf-8');
+
+  var responseString = '';
+
+  res.on('data', function(data) {
+      responseString += data;
+  });
+
+
+      res.on('end', function() {
+          var response = JSON.parse(responseString);
+          var stats_car_year = response[0].Model_Year
+          var stats_car_mpg = response[0].City_Conventional_Fuel
+          callback([stats_car_year, stats_car_mpg]);
+        })
+      })
+      req.end();
+  }
+
 // Shine Car Theft
 function httpsGet_CarTheft(state, callback) {
     // Update these options with the details of the web service you would like to call
@@ -281,7 +350,6 @@ function httpsGet_CarTheft(state, callback) {
         port: 443,
         path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=` + shine_key,
         method: 'GET',
-        ciphers: 'DES-CBC3-SHA',
         // if x509 certs are required:
         // key: fs.readFileSync('certs/my-key.pem'),
         // cert: fs.readFileSync('certs/my-cert.pem')
@@ -304,17 +372,18 @@ function httpsGet_CarTheft(state, callback) {
             var make = data[0].Make
             var model = data[0].Model
             // this will execute whatever function the caller defined, with one argument
-            callback(null, make, model);
+            callback([make, model]);
         });
     });
     req.end();
 
 }
-// MyGasFeed
-function get_price(lat, lng) {
+
+// MyGasFeed gets average price of gas around the starting location
+function get_price(lat, long, callback) {
     let request = require('request')
     let options = {
-        "url": `http://devapi.mygasfeed.com/stations/radius/${lat}/${lng}/5/reg/price/rfej9napna.json`,
+        "url": `http://api.mygasfeed.com/stations/radius/${lat}/${long}/5/reg/price/0tsuii9i8o.json`,
         "method": "GET",
         "qs": {
             //"address": "2+old+english+village+apt+110",
@@ -324,55 +393,38 @@ function get_price(lat, lng) {
     request(options, (err, resp, body) => {
         //go through the address components and geometry components.
         var data = JSON.parse(body);
-
-        var result = data.stations[0].reg_price;
-        return result;
+        //console.log(data)
+        var sum_price = 0;
+        for(var i = 0; i < data.stations.length; i++)
+        {
+          sum_price += Number(data.stations[i].reg_price)
+        }
+        var avg_price = (sum_price/data.stations.length)
+        callback([avg_price]);
     })
-
 }
 
 // GooglePlace
-function httpsGetmyGoogleplace(lat, lng, rankby, types, rating, callback) {
-    // Update these options with the details of the web service you would like to call
+function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
-        //path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
-        path: `/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=${rankby}&types=${types}&rating=${rating}&key=` + googleplace_key,
+        path: '/maps/api/place/nearbysearch/json?location=' + lat + ',' + long + '&rankby=' + rankby + '&type=' + types + '&key=' + googleplace_key,
         method: 'GET',
-
-        // if x509 certs are required:
-        // key: fs.readFileSync('certs/my-key.pem'),
-        // cert: fs.readFileSync('certs/my-cert.pem')
     };
-
-
     var req = https.request(options, res => {
         res.setEncoding('utf8');
         var returnData = "";
-
         res.on('data', chunk => {
             returnData = returnData + chunk;
         });
-
         res.on('end', () => {
-            // we have now received the raw return data in the returnData variable.
-            // We can see it in the log output via:
-            // console.log(JSON.stringify(returnData))
-            // we may need to parse through it to extract the needed
-            var returnObj = []
             var pop = JSON.parse(returnData);
+            var name = pop.results[0].name;
             var lat = Number(pop.results[0].geometry.location.lat);
             var lng = Number(pop.results[0].geometry.location.lng);
-            var types = pop.results[0].types;
             var rate = pop.results[0].rating;
-            returnObj.push([lat, lng, types, rate])
-            callback(null, returnObj);
-            //var long = Number(pop.results[0].geometry.location.lng)
-            //var type = pop.results[0].rating;
-            //callback(long);
-            //callback(type);
-            // this will execute whatever function the caller defined, with one argument
+            callback([lat, long, rate, name])
         });
     });
     req.end();
