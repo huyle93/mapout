@@ -77,11 +77,10 @@ const handlers = {
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
-        var make = this.event.request.intent.slots.make.value;
-        var model = this.event.request.intent.slots.model.value;
-        var year = this.event.request.intent.slots.year.value;
+       // var make = this.event.request.intent.slots.make.value;
+       // var model = this.event.request.intent.slots.model.value;
+       // var year = this.event.request.intent.slots.year.value;
         speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}. `
-
         // Calling API
         httpsGet_Geocode(address, (geocode) => {
           var lat = geocode[0] // int
@@ -315,11 +314,22 @@ function httpsGet_Matrix(lat, long, callback) {
 
 // Shine Car Stats
 function httpsGetStats(make, model, year, callback){
+<<<<<<< HEAD
   var stats_options = {
     host: 'apis.solarialabs.com',
     path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
     method: 'GET'
   }
+=======
+    var stats_options = {
+      host: 'apis.solarialabs.com',
+      path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
+      method: 'GET'
+    }
+
+    var req = https.request(stats_options, function(res) {
+    res.setEncoding('utf-8');
+>>>>>>> 4bba9af2606d6e2416e8ed69511a1af95352260d
 
   var req = https.request(stats_options, function(res) {
   res.setEncoding('utf-8');
@@ -378,9 +388,14 @@ function httpsGet_CarTheft(state, callback) {
     req.end();
 
 }
+<<<<<<< HEAD
 
 // MyGasFeed gets average price of gas around the starting location
 function get_price(lat, long, callback) {
+=======
+// MyGasFeed
+function get_price(lat, lng, callback) {
+>>>>>>> 4bba9af2606d6e2416e8ed69511a1af95352260d
     let request = require('request')
     let options = {
         "url": `http://api.mygasfeed.com/stations/radius/${lat}/${long}/5/reg/price/0tsuii9i8o.json`,
@@ -393,6 +408,7 @@ function get_price(lat, long, callback) {
     request(options, (err, resp, body) => {
         //go through the address components and geometry components.
         var data = JSON.parse(body);
+<<<<<<< HEAD
         //console.log(data)
         var sum_price = 0;
         for(var i = 0; i < data.stations.length; i++)
@@ -401,15 +417,29 @@ function get_price(lat, long, callback) {
         }
         var avg_price = (sum_price/data.stations.length)
         callback([avg_price]);
+=======
+        var result = data.stations[0].reg_price;
+        callback([result])
+>>>>>>> 4bba9af2606d6e2416e8ed69511a1af95352260d
     })
 }
 
 // GooglePlace
+<<<<<<< HEAD
 function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
         path: '/maps/api/place/nearbysearch/json?location=' + lat + ',' + long + '&rankby=' + rankby + '&type=' + types + '&key=' + googleplace_key,
+=======
+function httpsGetmyGoogleplace(lat, lng, rankby, types, callback) {
+    // Update these options with the details of the web service you would like to call
+    var options = {
+        host: 'maps.googleapis.com',
+        port: 443,
+        //path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs`,
+        path: `/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=${rankby}&types=${types}&key=` + googleplace_key,
+>>>>>>> 4bba9af2606d6e2416e8ed69511a1af95352260d
         method: 'GET',
     };
     var req = https.request(options, res => {
@@ -419,12 +449,30 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
             returnData = returnData + chunk;
         });
         res.on('end', () => {
+<<<<<<< HEAD
             var pop = JSON.parse(returnData);
             var name = pop.results[0].name;
+=======
+            // we have now received the raw return data in the returnData variable.
+            // We can see it in the log output via:
+            // console.log(JSON.stringify(returnData))
+            // we may need to parse through it to extract the needed
+            var pop = JSON.parse(returnData);
+            var name = pop.results[0].name
+>>>>>>> 4bba9af2606d6e2416e8ed69511a1af95352260d
             var lat = Number(pop.results[0].geometry.location.lat);
             var lng = Number(pop.results[0].geometry.location.lng);
             var rate = pop.results[0].rating;
+<<<<<<< HEAD
             callback([lat, long, rate, name])
+=======
+            callback([lat, lng, types, rate, name]);
+            //var long = Number(pop.results[0].geometry.location.lng)
+            //var type = pop.results[0].rating;
+            //callback(long);
+            //callback(type);
+            // this will execute whatever function the caller defined, with one argument
+>>>>>>> 4bba9af2606d6e2416e8ed69511a1af95352260d
         });
     });
     req.end();
