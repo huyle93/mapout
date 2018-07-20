@@ -52,7 +52,7 @@ const handlers = {
 
         var start_addr = `${addressLine1} ${city} ${starting_state}`
 
-        httpsGet_Geocode(start_addr, (start_geocode) => {
+        httpsGet_Geocode.call(this, start_addr, (start_geocode) => {
           myCoordinates = [start_geocode[0],start_geocode[1]]
         })
 
@@ -83,7 +83,7 @@ const handlers = {
         speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}. `
 
         // Calling API
-        httpsGet_Geocode(address, (geocode) => {
+        httpsGet_Geocode.call(this, address, (geocode) => {
           var lat = geocode[0] // int
           var long = geocode[1] // int
           httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => {
@@ -108,7 +108,6 @@ const handlers = {
                   speechOutput += ". Year is " + year + " mpg is " + mpg
                   speechOutput += ". The closest parking garage to " + address + " is " + parking_name + " the rating is " + parking_rating;
                   speechOutput += ". The cost of gas will be $" + gasCost + " one way or $" + (gasCost*2) + " roundtrip."
-                  speechOutput = `${make} ${model} ${year} ${toCity}`
                   this.response.speak(speechOutput);
                   this.emit(":responseReady")
                 })
@@ -242,6 +241,8 @@ var gas_key = "0tsuii9i8o";
 // Geocode
 function httpsGet_Geocode(myData, callback) {
     // Update these options with the details of the web service you would like to call
+    var hold = this;
+
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
@@ -252,6 +253,7 @@ function httpsGet_Geocode(myData, callback) {
         // key: fs.readFileSync('certs/my-key.pem'),
         // cert: fs.readFileSync('certs/my-cert.pem')
     };
+
     var req = https.request(options, res => {
         res.setEncoding('utf8');
         var returnData = "";
@@ -272,6 +274,14 @@ function httpsGet_Geocode(myData, callback) {
             // this will execute whatever function the caller defined, with one argument
         });
     });
+
+    req.on('error', function(err) {
+        /*
+        hold.response.speak('I\'m sorry. Something went wrong. In httpsGet_Geocode');
+        hold.emit(':responseReady');
+        */
+    });
+
     req.end();
 }
 
@@ -282,6 +292,7 @@ function getMiles(i) {
 
 function httpsGet_Matrix(lat, long, callback) {
     // Update these options with the details of the web service you would like to call
+    var hold = this
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
@@ -299,6 +310,7 @@ function httpsGet_Matrix(lat, long, callback) {
         res.on('data', chunk => {
             returnData = returnData + chunk;
         });
+
         res.on('end', () => {
             // we have now received the raw return data in the returnData variable.
             // We can see it in the log output via:
@@ -313,11 +325,19 @@ function httpsGet_Matrix(lat, long, callback) {
             // this will execute whatever function the caller defined, with one argument
         });
     });
+
+    req.on('error', function(err) {
+      /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGet_Matrix');
+        hold.emit(':responseReady');*/
+    });
+
     req.end();
 }
 
 // Shine Car Stats
 function httpsGetStats(make, model, year, callback){
+  var hold = this
+
   var stats_options = {
     host: 'apis.solarialabs.com',
     path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
@@ -326,14 +346,13 @@ function httpsGetStats(make, model, year, callback){
   }
 
   var req = https.request(stats_options, function(res) {
-  res.setEncoding('utf-8');
+      res.setEncoding('utf-8');
 
-  var responseString = '';
+      var responseString = '';
 
-  res.on('data', function(data) {
-      responseString += data;
-  });
-
+      res.on('data', function(data) {
+          responseString += data;
+      });
 
       res.on('end', function() {
           var response = JSON.parse(responseString);
@@ -342,6 +361,12 @@ function httpsGetStats(make, model, year, callback){
           callback([stats_car_year, stats_car_mpg]);
         })
       })
+
+      req.on('error', function(err) {
+          /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetStats');
+          hold.emit(':responseReady');*/
+      });
+
       req.end();
   }
 
@@ -349,6 +374,8 @@ function httpsGetStats(make, model, year, callback){
 function httpsGet_CarTheft(state, callback) {
     // Update these options with the details of the web service you would like to call
     // this will return top 3rd that got stolen
+    var hold = this
+
     var options = {
         host: 'apis.solarialabs.com',
         port: 443,
@@ -380,6 +407,12 @@ function httpsGet_CarTheft(state, callback) {
             callback([make, model]);
         });
     });
+
+    req.on('error', function(err) {
+        /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGet_Car');
+        hold.emit(':responseReady');*/
+    });
+
     req.end();
 
 }
@@ -411,12 +444,14 @@ function get_price(lat, long, callback) {
 
 // GooglePlace
 function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
+    var hold = this
+
     var options = {
         host: 'maps.googleapis.com',
         port: 443,
         path: '/maps/api/place/nearbysearch/json?location=' + lat + ',' + long + '&rankby=' + rankby + '&type=' + types + '&key=' + googleplace_key,
         method: 'GET',
-       timeout: 100000
+        timeout: 100000
     };
     var req = https.request(options, res => {
         res.setEncoding('utf8');
@@ -424,6 +459,7 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
         res.on('data', chunk => {
             returnData = returnData + chunk;
         });
+
         res.on('end', () => {
             var pop = JSON.parse(returnData);
             var name = pop.results[0].name;
@@ -433,5 +469,11 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
             callback([lat, long, rate, name])
         });
     });
+
+    req.on('error', function(err) {
+        /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetmyGoogleplace');
+        hold.emit(':responseReady');*/
+    });
+
     req.end();
 }
