@@ -435,7 +435,10 @@ function get_price(lat, long, callback) {
         var sum_price = 0;
         for(var i = 0; i < data.stations.length; i++)
         {
-          sum_price += Number(data.stations[i].reg_price)
+          if(data.stations[i].reg_price !== "N\/A")
+          {
+            sum_price += Number(data.stations[i].reg_price)
+          }
         }
         var avg_price = (sum_price/data.stations.length)
         callback([avg_price]);
