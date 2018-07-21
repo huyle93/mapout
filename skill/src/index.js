@@ -5,6 +5,8 @@ const Alexa = require('alexa-sdk');
 var https = require('https');
 var async = require('asyncawait/async');
 var await = require('asyncawait/await');
+require('dotenv').load();
+
 
 // 1. Text strings =====================================================================================================
 //    Modify these strings and messages to change the behavior of your Lambda function
@@ -100,7 +102,7 @@ const handlers = {
               var durationtext = matrix[3]
               httpsGetStats("honda", "civic", 2013, (stats) => {
                 var mpg = stats[0]
-                httpsGet_CarTheft("nh", (theft) => {
+                httpsGet_CarTheft("ma", (theft) => {
                   var theftCarMake = theft[0];
                   var theftCarModel = theft[1];
                   var theftCar = `${theftCarMake} ${theftCarModel}`
@@ -109,7 +111,7 @@ const handlers = {
                     var gasPrice = price[0];
                     var distance = getMiles(distancevalue);
                     var gasCost = Math.ceil((gasPrice * distance) / mpg)
-                    speechOutput += ". We anticipate this trip will take " + durationtext + " to get there and be a distance of " + distancetext;
+                    speechOutput += `. We anticipate this trip will take ${durationtext} to get there and be a distance of ${distancetext}`
                     speechOutput += ". The closest parking garage to " + address + " is " + parking_name + " the rating is " + parking_rating;
                     speechOutput += ". The cost of gas will be about $" + gasCost + " one way or $" + (gasCost*2) + " roundtrip"
                     if (myCar.toLowerCase() == theftCar.toLowerCase()) {
@@ -240,11 +242,11 @@ function GetCurrentAddress(callback) {
 
 // ======================== Custom functions ======================= //
 //API KEY
-var matrix_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
-var shine_key = "UKxbxhZYNEiP4spThYCy61bwEhRQXlPb";
-var googleplace_key = "AIzaSyBtVpXAuWlnuC7hicRdzFBzBifYR1evqIY";
-var google_key = "AIzaSyD-8QBhZNxZLnmX2AxBEOB2sSHzg4L2tZs";
-var gas_key = "0tsuii9i8o";
+var matrix_key = process.env.MATRIX_KEY
+var shine_key = process.env.SHINE_KEY
+var googleplace_key = process.env.GOOGLEPLACE_KEY
+var google_key = process.env.GEOCODE_KEY
+var gas_key = process.env.GAS_KEY
 
 // Geocode
 function httpsGet_Geocode(myData, callback) {
@@ -428,7 +430,7 @@ function httpsGet_CarTheft(state, callback) {
 function get_price(lat, long, callback) {
     let request = require('request')
     let options = {
-        "url": `http://api.mygasfeed.com/stations/radius/${lat}/${long}/5/reg/price/0tsuii9i8o.json`,
+        "url": `http://api.mygasfeed.com/stations/radius/${lat}/${long}/5/reg/price/${gas_key}.json`,
         "method": "GET",
         "qs": {
             //"address": "2+old+english+village+apt+110",
@@ -440,9 +442,14 @@ function get_price(lat, long, callback) {
         var data = JSON.parse(body);
         //console.log(data)
         var sum_price = 0;
+        
         for(var i = 0; i < data.stations.length; i++)
         {
-          sum_price += Number(data.stations[i].reg_price)
+            var listprice = data.stations[i].reg_price 
+            if (listprice != "N\/A"){
+
+          sum_price += Number(listprice)
+            }
         }
         var avg_price = (sum_price/data.stations.length)
         callback([avg_price]);
