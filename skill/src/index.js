@@ -19,7 +19,7 @@ const tripIntro = [
     "Oh, I like this trip. "
 ];
 var starting_state = "MA";
-var city = "Andover";
+var starting_city = "Andover";
 var countryCode = "US";
 var postalCode = 01810;
 var addressLine1 = "21 Noel Rd";
@@ -41,7 +41,7 @@ const handlers = {
         //get current addressLine1
         var getAddr = GetCurrentAddress.call( this, (addr_info) => {
             starting_state = addr_info[0];
-            city = addr_info[1];
+            starting_city = addr_info[1];
             countryCode = addr_info[2];
             postalCode = addr_info[3];
             addressLine1 = addr_info[4];
@@ -50,7 +50,7 @@ const handlers = {
             districtOrCounty =  addr_info[7];
         });
 
-        var start_addr = `${addressLine1} ${city} ${starting_state}`
+        var start_addr = `${addressLine1} ${starting_city} ${starting_state}`
 
         httpsGet_Geocode.call(this, start_addr, (start_geocode) => {
           myCoordinates = [start_geocode[0],start_geocode[1]]
@@ -73,17 +73,19 @@ const handlers = {
 
         //Now let's recap the trip
         //Validate info
-        var fromCity = this.event.request.intent.slots.fromCity.value;
+        var toState = this.event.request.intent.slots.toState.value;
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
         var make = this.event.request.intent.slots.make.value;
         var model = this.event.request.intent.slots.model.value;
         var year = this.event.request.intent.slots.year.value;
-        speechOutput += `from ${fromCity} to ${address} , ${toCity} on ${travelDate}. `
+        speechOutput += `from ${starting_city}, ${starting_state} to ${address} ${toCity}, ${toState} on ${travelDate}`
+
+        var to_addr = `${address} ${toCity}`
 
         // Calling API
-        httpsGet_Geocode.call(this, address, (geocode) => {
+        httpsGet_Geocode.call(this, to_addr, (geocode) => {
           var lat = geocode[0] // int
           var long = geocode[1] // int
           httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => {
@@ -96,20 +98,26 @@ const handlers = {
               var distancetext = matrix[1]
               var durationvalue = matrix[2] // int
               var durationtext = matrix[3]
-              httpsGetStats("honda", "civic", "2013", (stats) => {
-                var year = stats[0] // int
-                var mpg = stats[1]
-                get_price(myCoordinates[0], myCoordinates[1], (price) => {
-                  var gasPrice = price[0];
-                  var distance = getMiles(distancevalue);
-                  var gasCost = Math.ceil((gasPrice * distance) / mpg)
-                  speechOutput +=  ". The Lat is " + lat + " the long is " + long;
-                  speechOutput += ". It will take " + durationtext + " to get there and be a distance of " + distancetext + " (" + distance + ")";
-                  speechOutput += ". Year is " + year + " mpg is " + mpg
-                  speechOutput += ". The closest parking garage to " + address + " is " + parking_name + " the rating is " + parking_rating;
-                  speechOutput += ". The cost of gas will be $" + gasCost + " one way or $" + (gasCost*2) + " roundtrip."
-                  this.response.speak(speechOutput);
-                  this.emit(":responseReady")
+              httpsGetStats("honda", "civic", 2013, (stats) => {
+                var mpg = stats[0]
+                httpsGet_CarTheft("nh", (theft) => {
+                  var theftCarMake = theft[0];
+                  var theftCarModel = theft[1];
+                  var theftCar = `${theftCarMake} ${theftCarModel}`
+                  var myCar = `${make} ${model}`
+                  get_price(myCoordinates[0], myCoordinates[1], (price) => {
+                    var gasPrice = price[0];
+                    var distance = getMiles(distancevalue);
+                    var gasCost = Math.ceil((gasPrice * distance) / mpg)
+                    speechOutput += ". We anticipate this trip will take " + durationtext + " to get there and be a distance of " + distancetext;
+                    speechOutput += ". The closest parking garage to " + address + " is " + parking_name + " the rating is " + parking_rating;
+                    speechOutput += ". The cost of gas will be about $" + gasCost + " one way or $" + (gasCost*2) + " roundtrip"
+                    if (myCar.toLowerCase() == theftCar.toLowerCase()) {
+                        speechOutput += `. Be careful!! Your car ${theftCar} is on top of the most commonly stolen car list in this state based on Liberty Mutual Insurance's data. Because of this we would recommend finding a garage to park.`
+                    }
+                    this.response.speak(speechOutput);
+                    this.emit(":responseReady")
+                  })
                 })
               })
             })
@@ -356,11 +364,10 @@ function httpsGetStats(make, model, year, callback){
 
       res.on('end', function() {
           var response = JSON.parse(responseString);
-          var stats_car_year = response[0].Model_Year
           var stats_car_mpg = response[0].City_Conventional_Fuel
-          callback([stats_car_year, stats_car_mpg]);
-        })
+          callback([stats_car_mpg]);
       })
+    })
 
       req.on('error', function(err) {
           /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetStats');
@@ -435,10 +442,7 @@ function get_price(lat, long, callback) {
         var sum_price = 0;
         for(var i = 0; i < data.stations.length; i++)
         {
-          if(data.stations[i].reg_price !== "N\/A")
-          {
-            sum_price += Number(data.stations[i].reg_price)
-          }
+          sum_price += Number(data.stations[i].reg_price)
         }
         var avg_price = (sum_price/data.stations.length)
         callback([avg_price]);
