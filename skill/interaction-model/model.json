@@ -371,35 +371,36 @@
             "intents": [
                 {
                     "name": "PlanMyTrip",
-                    "confirmationRequired": true,
-                    "prompts": {
-                        "confirmation": "Confirm.Intent.820838673861"
-                    },
+                    "confirmationRequired": false,
+                    "prompts": {},
                     "slots": [
                         {
                             "name": "toCity",
                             "type": "AMAZON.US_CITY",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.1326298737306.136510581693",
                                 "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-toCity"
                             }
                         },
                         {
                             "name": "toState",
                             "type": "AMAZON.US_STATE",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.1326298737306.123850564944",
                                 "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-fromCity"
                             }
                         },
                         {
                             "name": "places",
                             "type": "AMAZON.StreetAddress",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.439339772331.438305179558",
                                 "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-places"
                             }
                         },
@@ -586,6 +587,33 @@
                     {
                         "type": "PlainText",
                         "value": "You want to go to {places} in {toCity} , {toState} ?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.439339772331.438305179558",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "I heard you want to go {toCity} , of {toState} , the place would be {places} , is that correct?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.1326298737306.136510581693",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "I heard {toCity} , is that correct?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.1326298737306.123850564944",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "I heard {toState} , is that correct?"
                     }
                 ]
             }
