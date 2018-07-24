@@ -13,18 +13,31 @@ require('dotenv').load();
 
 let speechOutput;
 let reprompt;
-const welcomeOutput = "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.";
+const welcomeOutput = [
+    "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.",
+    "Thank you for using Mapout. I am your own personal trip advisor. To begin simply say, let's plan a trip.",
+    "Hi. Welcome to Mapout. In just a few steps I can help you plan a trip. To start, say, let's plan a trip.",
+  ]
+
 const welcomeReprompt = "Let me know where you'd like to go or when you'd like to go on your trip";
+
 const tripIntro = [
     "This sounds like a cool trip. ",
     "This will be fun. ",
     "Oh, I like this trip. "
 ];
-var starting_state = "MA";
-var starting_city = "Andover";
-var countryCode = "US";
-var postalCode = 01810;
-var addressLine1 = "21 Noel Rd";
+
+const cancelResponse = [
+  "Okay. I hope you will use us again soon.",
+  "Goodbye. Let me know when you want to next plan a trip.",
+  "Alright. I hope to help you plan a trip later."
+]
+
+var starting_state = "NH";
+var starting_city = "Durham";
+var countryCode = "03824";
+var postalCode = 0;
+var addressLine1 = "UNH";
 var addressLine2 = "";
 var addressLine3 = "";
 var districtOrCounty =  "";
@@ -36,7 +49,8 @@ const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 var myCoordinates = []
 const handlers = {
     'LaunchRequest': function () {
-        this.response.speak(welcomeOutput).listen(welcomeReprompt);
+        var speechOutput = randomPhrase(welcomeOutput);
+        this.response.speak(speechOutput).listen(welcomeReprompt);
         this.emit(':responseReady');
     },
     'PlanMyTrip': function () {
@@ -79,12 +93,12 @@ const handlers = {
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
-        var make = this.event.request.intent.slots.make.value;
-        var model = this.event.request.intent.slots.model.value;
-        var year = this.event.request.intent.slots.year.value;
-        speechOutput += `from ${starting_city}, ${starting_state} to ${address} ${toCity}, ${toState} on ${travelDate}`
+        var make = "toyota"
+        var model = "camry"
+        var year = 2013
 
         var to_addr = `${address} ${toCity}`
+        speechOutput += `from ${starting_city}, ${starting_state} to ${to_addr}, ${toState} on ${travelDate}`
 
         // Calling API
         httpsGet_Geocode.call(this, to_addr, (geocode) => {
@@ -100,7 +114,7 @@ const handlers = {
               var distancetext = matrix[1]
               var durationvalue = matrix[2] // int
               var durationtext = matrix[3]
-              httpsGetStats("honda", "civic", 2013, (stats) => {
+              httpsGetStats(make, model, year, (stats) => {
                 var mpg = stats[0]
                 httpsGet_CarTheft("ma", (theft) => {
                   var theftCarMake = theft[0];
@@ -111,12 +125,7 @@ const handlers = {
                     var gasPrice = price[0];
                     var distance = getMiles(distancevalue);
                     var gasCost = Math.ceil((gasPrice * distance) / mpg)
-                    speechOutput += `. We anticipate this trip will take ${durationtext} to get there and be a distance of ${distancetext}`
-                    speechOutput += ". The closest parking garage to " + address + " is " + parking_name + " the rating is " + parking_rating;
-                    speechOutput += ". The cost of gas will be about $" + gasCost + " one way or $" + (gasCost*2) + " roundtrip"
-                    if (myCar.toLowerCase() == theftCar.toLowerCase()) {
-                        speechOutput += `. Be careful!! Your car ${theftCar} is on top of the most commonly stolen car list in this state based on Liberty Mutual Insurance's data. Because of this we would recommend finding a garage to park.`
-                    }
+                    speechOutput += getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar);
                     this.response.speak(speechOutput);
                     this.emit(":responseReady")
                   })
@@ -127,23 +136,23 @@ const handlers = {
         });
     },
     'AMAZON.HelpIntent': function () {
-        speechOutput = "";
-        reprompt = "";
+        speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. You can start by saying, Let's plan a trip";
+        reprompt = "Say let's plan a trip when you are ready to begin.";
         this.response.speak(speechOutput).listen(reprompt);
         this.emit(':responseReady');
     },
     'AMAZON.CancelIntent': function () {
-        speechOutput = "";
+        var speechOutput = randomPhrase(cancelResponse);
         this.response.speak(speechOutput);
         this.emit(':responseReady');
     },
     'AMAZON.StopIntent': function () {
-        speechOutput = "";
+        var speechOutput = randomPhrase(cancelResponse);
         this.response.speak(speechOutput);
         this.emit(':responseReady');
     },
     'SessionEndedRequest': function () {
-        var speechOutput = "";
+        var speechOutput = "Thank you for using Mapout.";
         this.response.speak(speechOutput);
         this.emit(':responseReady');
     },
@@ -207,6 +216,56 @@ function isSlotValid(request, slotName) {
     }
 }
 
+// ======================== Custom functions ======================= //
+// Gets the final randomized message
+function getFinalMessage( address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar){
+  var distanceAndDuration_response = [
+    `. We anticipate this trip will take you ${durationtext} to get there and be a total distance of ${distancetext}`,
+    `. Based off of our estimations your trip will be about ${durationtext} long over ${distancetext}`,
+    `. This trip will be approximately ${distancetext} over the course of ${durationtext}`
+  ]
+
+  var parking_response  = [
+    `. The closest parking we could find to ${address} is ${parking_name}. Their rating is a ${parking_rating}`,
+    `. We found some parking close to ${address} for you. ${parking_name}'s rating is ${parking_rating}`,
+    `. The closest place we could find parking for you will be ${parking_name} with a rating of ${parking_rating}`
+  ]
+
+  var gas_response  = [
+    `. We estimate the cost of gas on this trip will be approximately $${gasCost} one way or $${(gasCost*2)} for the roundtrip`,
+    `. Based on the distance and fuel efficiency of your car your cost for gas for this trip will be about $${gasCost} one way or $${(gasCost*2)} roundtrip`,
+    `. This trip will cost around $${gasCost} one way or $${(gasCost*2)} roundtrip based on the fuel efficiency of your car and distance of the trip`,
+  ]
+
+  var theft_response = [
+    `. Be careful! Your car ${theftCar}, is on top of the most commonly stolen car list in this state based on Liberty Mutual Insurance's data. Because of this we would recommend finding a garage to park.`,
+    `. Warning! The car you provided us, ${theftCar}, is among the most commonly stolen cars in this state based on data from Liberty Mutual Insurance. We would recommend finding a garage to park.`,
+    `. Heads up! ${theftCar}s are on top of Liberty Mutual Insurance's most commonly stolen car list in this state. It is recommended that you find a garage to park.`
+  ]
+
+  var speechOutput = ""
+  speechOutput += randomPhrase(distanceAndDuration_response);
+  speechOutput += randomPhrase(parking_response);
+  speechOutput += randomPhrase(gas_response);
+
+  if (myCar.toLowerCase() == theftCar.toLowerCase()) {
+      speechOutput += randomPhrase(theft_response);
+  }
+  else {
+    speechOutput += "."
+  }
+
+  return speechOutput;
+}
+
+// API KEYS
+var matrix_key = process.env.MATRIX_KEY
+var shine_key = process.env.SHINE_KEY
+var googleplace_key = process.env.GOOGLEPLACE_KEY
+var google_key = process.env.GOOGLE_KEY
+var gas_key = process.env.GAS_KEY
+
+//Gets Address from Amazon
 function GetCurrentAddress(callback) {
     if(this.event.context.System.user.permissions) {
       const token = this.event.context.System.user.permissions.consentToken;
@@ -239,14 +298,6 @@ function GetCurrentAddress(callback) {
       this.emit(':responseReady');
   }
 }
-
-// ======================== Custom functions ======================= //
-//API KEY
-var matrix_key = process.env.MATRIX_KEY
-var shine_key = process.env.SHINE_KEY
-var googleplace_key = process.env.GOOGLEPLACE_KEY
-var google_key = process.env.GEOCODE_KEY
-var gas_key = process.env.GAS_KEY
 
 // Geocode
 function httpsGet_Geocode(myData, callback) {
@@ -295,11 +346,12 @@ function httpsGet_Geocode(myData, callback) {
     req.end();
 }
 
-// Matrix
+//Gets distance in miles
 function getMiles(i) {
     return i * 0.000621371192;
 }
 
+//Matrix
 function httpsGet_Matrix(lat, long, callback) {
     // Update these options with the details of the web service you would like to call
     var hold = this
@@ -442,10 +494,10 @@ function get_price(lat, long, callback) {
         var data = JSON.parse(body);
         //console.log(data)
         var sum_price = 0;
-        
+
         for(var i = 0; i < data.stations.length; i++)
         {
-            var listprice = data.stations[i].reg_price 
+            var listprice = data.stations[i].reg_price
             if (listprice != "N\/A"){
 
           sum_price += Number(listprice)
@@ -479,7 +531,7 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
             var name = pop.results[0].name;
             var lat = Number(pop.results[0].geometry.location.lat);
             var lng = Number(pop.results[0].geometry.location.lng);
-            var rate = pop.results[0].rating;
+            var rate = pop.results[0].rating||3;
             callback([lat, long, rate, name])
         });
     });
