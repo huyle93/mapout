@@ -1,23 +1,24 @@
+$padding-input-login: 0.3%;
+
+body{
+    margin-top: 50%;
+}
 .field{
     display:  flex;
     justify-content: center;
-    align-items:  center;
+    align-items:  left;
     padding: 1%;
-    margin: 0.5%;
 }
-
 .wrapper{
-    margin-top: 2em;
+    margin-bottom: 9em;
+    height: 10em;    
 }
-
 .input{
-    padding: 0.3%;
+    padding: padding-input-login;
     width: 20%;
 }
-
 #login{
-
-    padding: 0.5%;
+    padding: padding-input-login;
     width: 17%;
     background-color: cadetblue;
     color: white;

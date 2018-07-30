@@ -6,9 +6,11 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { ServicesComponent } from './services/services.component';
 import { RegisterComponent } from './register/register.component';
-
-const routes: Routes = [{path:'', component:LoginComponent},
+import { MatInputModule} from '@angular/material'
+const registerRoutes: Routes = [{path:'', component:LoginComponent},
 {path:'register',component: RegisterComponent}];
+const loginRoutes: Routes = [{path:'', component:RegisterComponent},
+{path:'login',component: LoginComponent}];
 
 
 @NgModule({
@@ -16,12 +18,16 @@ const routes: Routes = [{path:'', component:LoginComponent},
     AppComponent,
     LoginComponent,
     ServicesComponent,
-    RegisterComponent
+    RegisterComponent,    
   ],
+
   imports: [
     BrowserModule,
     FormsModule,
-    RouterModule.forRoot(routes)
+    MatInputModule,
+    RouterModule.forRoot(registerRoutes),
+    RouterModule.forChild(loginRoutes)
+    
   ],
   providers: [],
   bootstrap: [AppComponent]

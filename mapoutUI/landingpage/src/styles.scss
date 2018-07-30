@@ -1,1 +1,16 @@
 /* You can add global styles to this file, and also import other style files */
+body{
+    margin-top: 14%;
+}
+
+
+.field{
+    display:  flex;
+    justify-content: center;
+    align-items:  left;
+    padding: 1%;
+}
+.wrapper{
+    margin-bottom: 9em;
+    height: 10em;    
+}

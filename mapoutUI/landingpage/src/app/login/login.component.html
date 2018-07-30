@@ -1,4 +1,5 @@
 <div id='wrapper'>
+    <form>
     <div class="field">
       <input type="text" placeholder="UserName" name="username" [(ngModel)]="username" class="input">
     </div>
@@ -7,8 +8,9 @@
     </div>
     <div class="field">
       <button (click)="loginuser()" id="login">Login</button>
-      <a [routerLink]="['/register']" class="btn btn-link">Register</a>
+      <a [routerLink]="['/register']"class="btn btn-link">Register></a>
     </div>
+</form>
     </div>
   
   
