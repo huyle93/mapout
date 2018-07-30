@@ -6,7 +6,9 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { ServicesComponent } from './services/services.component';
 import { RegisterComponent } from './register/register.component';
-import { MatInputModule} from '@angular/material'
+import { MatInputModule, MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule} from '@angular/material';
+import { MaterialDashboardComponent } from './material-dashboard/material-dashboard.component';
+import { LayoutModule } from '@angular/cdk/layout'
 const registerRoutes: Routes = [{path:'', component:LoginComponent},
 {path:'register',component: RegisterComponent}];
 const loginRoutes: Routes = [{path:'', component:RegisterComponent},
@@ -18,7 +20,8 @@ const loginRoutes: Routes = [{path:'', component:RegisterComponent},
     AppComponent,
     LoginComponent,
     ServicesComponent,
-    RegisterComponent,    
+    RegisterComponent,
+    MaterialDashboardComponent,    
   ],
 
   imports: [
@@ -26,7 +29,13 @@ const loginRoutes: Routes = [{path:'', component:RegisterComponent},
     FormsModule,
     MatInputModule,
     RouterModule.forRoot(registerRoutes),
-    RouterModule.forChild(loginRoutes)
+    RouterModule.forChild(loginRoutes),
+    MatGridListModule,
+    MatCardModule,
+    MatMenuModule,
+    MatIconModule,
+    MatButtonModule,
+    LayoutModule
     
   ],
   providers: [],
