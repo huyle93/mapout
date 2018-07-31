@@ -24,5 +24,9 @@ export class RegisterComponent implements OnInit {
   registeruser(){
 
   }
+  validate(event){
+    var regexNumber = /^[+]?\d+$/;
+  
 
+  }
 }
