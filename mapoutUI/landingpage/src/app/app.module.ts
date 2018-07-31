@@ -7,12 +7,28 @@ import { LoginComponent } from './login/login.component';
 import { ServicesComponent } from './services/services.component';
 import { RegisterComponent } from './register/register.component';
 import { MatInputModule, MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule} from '@angular/material';
-import { MaterialDashboardComponent } from './material-dashboard/material-dashboard.component';
-import { LayoutModule } from '@angular/cdk/layout'
-const registerRoutes: Routes = [{path:'', component:LoginComponent},
-{path:'register',component: RegisterComponent}];
-const loginRoutes: Routes = [{path:'', component:RegisterComponent},
-{path:'login',component: LoginComponent}];
+/* import { MaterialDashboardComponent } from './material-dashboard/material-dashboard.component'; */
+import { LayoutModule } from '@angular/cdk/layout';
+import { UserProfileComponent } from './user-profile/user-profile.component'
+const registerRoutes: Routes = [{
+    path: '',
+    component: LoginComponent
+  },
+  {
+    path: 'register',
+    component: RegisterComponent
+  }
+];
+const loginRoutes: Routes = [{
+    path: '',
+    component: RegisterComponent
+  },
+  {
+    path: 'login',
+    component: LoginComponent
+  }
+];
+
 
 
 @NgModule({
@@ -20,8 +36,9 @@ const loginRoutes: Routes = [{path:'', component:RegisterComponent},
     AppComponent,
     LoginComponent,
     ServicesComponent,
-    RegisterComponent,
-    MaterialDashboardComponent,    
+    RegisterComponent, 
+    UserProfileComponent
+    /* MaterialDashboardComponent */,    
   ],
 
   imports: [
