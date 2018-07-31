@@ -31,7 +31,6 @@ export class RegisterComponent implements OnInit {
       startWith(''),
       map(value => this._filter(value))
     );
-
     this.filteredOptionscarmodel = this.myControlcarmodel.valueChanges
     .pipe(
       startWith(''),
