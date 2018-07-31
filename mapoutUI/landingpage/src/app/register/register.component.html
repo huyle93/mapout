@@ -39,6 +39,7 @@
 using either angular reactive form or regular angular form
 this code uses lots of bootstrap classes
 -->
+<form class='form'>
 <div class="container pt-3">
     <div class="row justify-content-sm-center">
       <div class="col-sm-6 col-md-4">
@@ -55,20 +56,20 @@ this code uses lots of bootstrap classes
               <input type="text" class="form-control mb-2" placeholder="User Name" name= "username"  >
               <input type="password" class="form-control mb-2" placeholder="Password" name= "password">
               <label for="sel1">Car Make</label>
-              <select class="form-control" id="sel1">
-             <option>1</option>
-             <option>2</option>
-             <option>3</option>
-             <option>4</option>
-              </select>
-              <label for="sel1">Car Model</label>
-              <select class="form-control" id="sel2">
-             <option>1</option>
-             <option>2</option>
-             <option>3</option>
-             <option>4</option>
-              </select>
-              <input type="text" maxlength= "4" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" class="form-control mb-2" placeholder="Car Year" name= "Year">
+                <input type="text" class="form-control mb-2" placeholder="Car Make"  matInput [formControl]="myControl" [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete">
+                  <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+                    {{optionCarmodel}}
+                  </mat-option>
+                </mat-autocomplete>
+                <label for="carmodel">Car Model</label>
+                <input type="text" class="form-control mb-2" placeholder="Car Model"  matInput [formControl]="myControlcarmodel" [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete">
+                    <mat-option *ngFor="let optionCarmodel of filteredOptionscarmodel | async" [value]="optionCarmodel">
+                      {{optionCarmodel}}
+                    </mat-option>
+                  </mat-autocomplete>
+              <input type="text" maxlength= "4" oninput="validateNumber()" class="form-control mb-2" placeholder="Car Year" name= "Year">
               <button class="btn btn-lg btn-primary btn-block mb-1" type="submit" (click)="registeruser()" id="register">Register</button>
               <a href="#" class="float-right">Need help?</a>
             </form>
@@ -78,4 +79,4 @@ this code uses lots of bootstrap classes
       </div>
     </div>
   </div>
-  
+  </form>

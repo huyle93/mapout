@@ -1,12 +1,12 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms'
+import { FormsModule, ReactiveFormsModule } from '@angular/forms'
 import { RouterModule, Routes, Router}  from '@angular/router'
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { ServicesComponent } from './services/services.component';
 import { RegisterComponent } from './register/register.component';
-import { MatInputModule, MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule} from '@angular/material';
+import { MatInputModule, MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule, MatAutocompleteModule} from '@angular/material';
 /* import { MaterialDashboardComponent } from './material-dashboard/material-dashboard.component'; */
 import { LayoutModule } from '@angular/cdk/layout';
 import { UserProfileComponent } from './user-profile/user-profile.component'
@@ -52,8 +52,16 @@ const loginRoutes: Routes = [{
     MatMenuModule,
     MatIconModule,
     MatButtonModule,
-    LayoutModule
+    LayoutModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
     
+    
+    
+  ],
+  exports:[
+
   ],
   providers: [],
   bootstrap: [AppComponent]
