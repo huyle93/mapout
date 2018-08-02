@@ -36,11 +36,12 @@
                             "name": "toCity",
                             "type": "AMAZON.US_CITY",
                             "samples": [
+                                "{places} {toCity} {toState}",
+                                "{toCity} {toState}",
                                 "i'd like to go to {toCity} ",
                                 "{toCity} ",
                                 "I'd like to visit {toCity} ",
                                 "we're going to {toCity} ",
-                                "i will leave on {travelDate} ",
                                 "I will go to {toCity}  on {travelDate} "
                             ]
                         },
@@ -466,7 +467,7 @@
                     },
                     {
                         "type": "PlainText",
-                        "value": "Which city or town would you like to plan on visiting?"
+                        "value": "Which city or town would you like to make a trip to?"
                     },
                     {
                         "type": "PlainText",
@@ -521,7 +522,7 @@
                     },
                     {
                         "type": "PlainText",
-                        "value": "What day are you planning this trip for {toCity} , {toState} ?"
+                        "value": "What day are you planning this trip for {toCity} ?"
                     },
                     {
                         "type": "PlainText",
@@ -595,13 +596,21 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "I heard you want to go {toCity} , of {toState} , the place would be {places} , is that correct?"
+                        "value": "To confirm, you would like to go to {places} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "I heard you want to go to {places} , is that correct?"
                     }
                 ]
             },
             {
                 "id": "Confirm.Slot.1326298737306.136510581693",
                 "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, you want to go to {toCity} ?"
+                    },
                     {
                         "type": "PlainText",
                         "value": "I heard {toCity} , is that correct?"
@@ -611,6 +620,10 @@
             {
                 "id": "Confirm.Slot.1326298737306.123850564944",
                 "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, you want to go to {toState} ?"
+                    },
                     {
                         "type": "PlainText",
                         "value": "I heard {toState} , is that correct?"

@@ -15,8 +15,8 @@ let speechOutput;
 let reprompt;
 const welcomeOutput = [
     "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.",
-    "Thank you for using Mapout. I am your own personal trip advisor. To begin simply say, let's plan a trip.",
-    "Hi. Welcome to Mapout. In just a few steps I can help you plan a trip. To start, say, let's plan a trip.",
+    `Thank you for using <phoneme alphabet="ipa" ph="mæp.aʊt">pecan</phoneme>. I am your own personal trip advisor. To begin simply say, let's plan a trip.`,
+    `Hi. Welcome to <phoneme alphabet="ipa" ph="mæp.aʊt">pecan</phoneme>. In just a few steps I can help you plan for your trip. To start, say, let's plan a trip.`,
   ]
 
 const welcomeReprompt = "Let me know where you'd like to go or when you'd like to go on your trip";
@@ -35,8 +35,8 @@ const cancelResponse = [
 
 var starting_state = "NH";
 var starting_city = "Durham";
-var countryCode = "03824";
-var postalCode = 0;
+var countryCode = "US";
+var postalCode = "03824";
 var addressLine1 = "UNH";
 var addressLine2 = "";
 var addressLine3 = "";
@@ -47,6 +47,7 @@ var districtOrCounty =  "";
 
 const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 var myCoordinates = []
+var db_id;
 const handlers = {
     'LaunchRequest': function () {
         var speechOutput = randomPhrase(welcomeOutput);
@@ -67,11 +68,12 @@ const handlers = {
         });
 
         var start_addr = `${addressLine1} ${starting_city} ${starting_state}`
-
         httpsGet_Geocode.call(this, start_addr, (start_geocode) => {
-          myCoordinates = [start_geocode[0],start_geocode[1]]
+          myCoordinates = [start_geocode[1],start_geocode[2]]
+          httpsPost_Cooridinates( myCoordinates[0], myCoordinates[1], id => {
+            db_id = id[0];
+          })
         })
-
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
 
@@ -98,27 +100,34 @@ const handlers = {
         var year = 2013
 
         var to_addr = `${address} ${toCity}`
+        var state = convertToAbbr(toState);
         speechOutput += `from ${starting_city}, ${starting_state} to ${to_addr}, ${toState} on ${travelDate}`
 
         // Calling API
         httpsGet_Geocode.call(this, to_addr, (geocode) => {
-          var lat = geocode[0] // int
-          var long = geocode[1] // int
+          var errors = [];
+          errors.push(geocode[0]);
+          var lat = geocode[1] // int
+          var long = geocode[2] // int
           httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => {
-            var parking_lat = place[0]
-            var parking_long = place[1]
-            var parking_rating = place[2]
-            var parking_name = place[3]
+            errors.push(place[0])
+            var parking_lat = place[1]
+            var parking_long = place[2]
+            var parking_rating = place[3]
+            var parking_name = place[4]
             httpsGet_Matrix(lat, long, (matrix) => {
-              var distancevalue = matrix[0] // int
-              var distancetext = matrix[1]
-              var durationvalue = matrix[2] // int
-              var durationtext = matrix[3]
+              errors.push(matrix[0])
+              var distancevalue = matrix[1] // int
+              var distancetext = matrix[2]
+              var durationvalue = matrix[3] // int
+              var durationtext = matrix[4]
               httpsGetStats(make, model, year, (stats) => {
-                var mpg = stats[0]
-                httpsGet_CarTheft("ma", (theft) => {
-                  var theftCarMake = theft[0];
-                  var theftCarModel = theft[1];
+                errors.push(stats[0]);
+                var mpg = Number(stats[1]);
+                httpsGet_CarTheft("MA", (theft) => {
+                  errors.push(theft[0]);
+                  var theftCarMake = theft[1];
+                  var theftCarModel = theft[2];
                   var theftCar = `${theftCarMake} ${theftCarModel}`
                   var myCar = `${make} ${model}`
                   get_price(myCoordinates[0], myCoordinates[1], (price) => {
@@ -126,6 +135,18 @@ const handlers = {
                     var distance = getMiles(distancevalue);
                     var gasCost = Math.ceil((gasPrice * distance) / mpg)
                     speechOutput += getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar);
+                    var checkForErrors = checkErrors( errors );
+                    if(checkForErrors != 0 )
+                    {
+                      if( checkForErrors == 1)
+                      {
+                        speechOutput += " Just a heads up. There was a non fatal error that occured. A default value has been placed but should be close to accurate."
+                      }
+                      else if( checkForErrors == 2)
+                      {
+                        speechOutput = " There was a fatal error occured. We're very sorry! Please try again."
+                      }
+                    }
                     this.response.speak(speechOutput);
                     this.emit(":responseReady")
                   })
@@ -134,6 +155,7 @@ const handlers = {
             })
           })
         });
+        onlyOnce = 0;
     },
     'AMAZON.HelpIntent': function () {
         speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. You can start by saying, Let's plan a trip";
@@ -220,20 +242,20 @@ function isSlotValid(request, slotName) {
 // Gets the final randomized message
 function getFinalMessage( address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar){
   var distanceAndDuration_response = [
-    `. We anticipate this trip will take you ${durationtext} to get there and be a total distance of ${distancetext}`,
-    `. Based off of our estimations your trip will be about ${durationtext} long over ${distancetext}`,
+    //`. We anticipate this trip will take you ${durationtext} to get there and be a total distance of ${distancetext}`,
+    //`. Based off of our estimations your trip will be about ${durationtext} long over ${distancetext}`,
     `. This trip will be approximately ${distancetext} over the course of ${durationtext}`
   ]
 
   var parking_response  = [
-    `. The closest parking we could find to ${address} is ${parking_name}. Their rating is a ${parking_rating}`,
-    `. We found some parking close to ${address} for you. ${parking_name}'s rating is ${parking_rating}`,
-    `. The closest place we could find parking for you will be ${parking_name} with a rating of ${parking_rating}`
+    //`. . The closest parking we could find to ${address} is ${parking_name}. Their rating is a ${parking_rating}`,
+    //`. . We found some parking close to ${address} for you. ${parking_name}'s rating is ${parking_rating}`,
+    `. . The closest place we could find parking for you will be ${parking_name} with a rating of ${parking_rating}`
   ]
 
   var gas_response  = [
-    `. We estimate the cost of gas on this trip will be approximately $${gasCost} one way or $${(gasCost*2)} for the roundtrip`,
-    `. Based on the distance and fuel efficiency of your car your cost for gas for this trip will be about $${gasCost} one way or $${(gasCost*2)} roundtrip`,
+    //`. We estimate the cost of gas on this trip will be approximately $${gasCost} one way or $${(gasCost*2)} for the roundtrip`,
+    //`. Based on the distance and fuel efficiency of your car your cost for gas for this trip will be about $${gasCost} one way or $${(gasCost*2)} roundtrip`,
     `. This trip will cost around $${gasCost} one way or $${(gasCost*2)} roundtrip based on the fuel efficiency of your car and distance of the trip`,
   ]
 
@@ -299,73 +321,74 @@ function GetCurrentAddress(callback) {
   }
 }
 
-// Geocode
-function httpsGet_Geocode(myData, callback) {
-    // Update these options with the details of the web service you would like to call
-    var hold = this;
-
-    var options = {
-        host: 'maps.googleapis.com',
-        port: 443,
-        path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=` + google_key,
-        method: 'GET',
-        timeout: 100000
-        // if x509 certs are required:
-        // key: fs.readFileSync('certs/my-key.pem'),
-        // cert: fs.readFileSync('certs/my-cert.pem')
-    };
-
-    var req = https.request(options, res => {
-        res.setEncoding('utf8');
-        var returnData = "";
-
-        res.on('data', chunk => {
-            returnData = returnData + chunk;
-        });
-
-        res.on('end', () => {
-            // we have now received the raw return data in the returnData variable.
-            // We can see it in the log output via:
-            // console.log(JSON.stringify(returnData))
-            // we may need to parse through it to extract the needed data
-            var pop = JSON.parse(returnData);
-            var lat = Number(pop.results[0].geometry.location.lat);
-            var lng = Number(pop.results[0].geometry.location.lng);
-            callback([lat, lng]);
-            // this will execute whatever function the caller defined, with one argument
-        });
-    });
-
-    req.on('error', function(err) {
-        /*
-        hold.response.speak('I\'m sorry. Something went wrong. In httpsGet_Geocode');
-        hold.emit(':responseReady');
-        */
-    });
-
-    req.end();
-}
-
 //Gets distance in miles
 function getMiles(i) {
     return i * 0.000621371192;
 }
 
+// Geocode
+function httpsGet_Geocode(myData, callback) {
+  // Update these options with the details of the web service you would like to call
+  var hold = this;
+
+  var options = {
+    host: 'maps.googleapis.com',
+    port: 443,
+    path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=` + google_key,
+    method: 'GET',
+    timeout: 100000
+  };
+
+  try{
+    var req = https.request(options, res => {
+      res.setEncoding('utf8');
+      var returnData = "";
+
+      res.on('data', chunk => {
+        returnData = returnData + chunk;
+      });
+
+      res.on('end', () => {
+        try{
+          var pop = JSON.parse(returnData);
+          var lat = Number(pop.results[0].geometry.location.lat);
+          var lng = Number(pop.results[0].geometry.location.lng);
+          callback([null, lat, lng]);
+        }
+        catch(error) {
+          console.error("There was a problem with the google API");
+          callback([2, 0, 0]);
+        }
+      });
+    });
+
+    req.on('error', function(err) {
+      /*
+      hold.response.speak('I\'m sorry. Something went wrong. In httpsGet_Geocode');
+      hold.emit(':responseReady');
+      */
+    });
+    req.end();
+  }
+  catch(error) {
+    console.error("There was a problem with the request");
+    callback([2, 0, 0]);
+  }
+}
+
 //Matrix
 function httpsGet_Matrix(lat, long, callback) {
-    // Update these options with the details of the web service you would like to call
-    var hold = this
-    var options = {
-        host: 'maps.googleapis.com',
-        port: 443,
-        path: `/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=` + matrix_key,
-        method: 'GET',
-        timeout: 100000
-        // if x509 certs are required:
-        // key: fs.readFileSync('certs/my-key.pem'),
-        // cert: fs.readFileSync('certs/my-cert.pem')
-    };
+  // Update these options with the details of the web service you would like to call
+  var hold = this
+  var options = {
+    host: 'maps.googleapis.com',
+    port: 443,
+    path: `/maps/api/distancematrix/json?units=imperial&origins=${myCoordinates[0]},${myCoordinates[1]}&destinations=${lat}%2C${long}&key=` + matrix_key,
+    method: 'GET',
+    timeout: 100000
+  };
 
+  try{
     var req = https.request(options, res => {
         res.setEncoding('utf8');
         var returnData = "";
@@ -374,17 +397,18 @@ function httpsGet_Matrix(lat, long, callback) {
         });
 
         res.on('end', () => {
-            // we have now received the raw return data in the returnData variable.
-            // We can see it in the log output via:
-            // console.log(JSON.stringify(returnData))
-            // we may need to parse through it to extract the needed data
             var data = JSON.parse(returnData);
-            var distancevalue = data.rows[0].elements[0].distance.value;
-            var distancetext = data.rows[0].elements[0].distance.text;
-            var durationvalue = data.rows[0].elements[0].duration.value;
-            var durationtext = data.rows[0].elements[0].duration.text;
-            callback([distancevalue, distancetext, durationvalue, durationtext]);
-            // this will execute whatever function the caller defined, with one argument
+            try{
+              var distancevalue = data.rows[0].elements[0].distance.value;
+              var distancetext = data.rows[0].elements[0].distance.text;
+              var durationvalue = data.rows[0].elements[0].duration.value;
+              var durationtext = data.rows[0].elements[0].duration.text;
+              callback([null, distancevalue, distancetext, durationvalue, durationtext]);
+            }
+            catch(error) {
+              console.error("There was a problem with the api call");
+              callback([2, 0, "", 0, ""]);
+            }
         });
     });
 
@@ -394,6 +418,11 @@ function httpsGet_Matrix(lat, long, callback) {
     });
 
     req.end();
+  }
+  catch(error) {
+    console.error("There was a problem with the request");
+    callback([2, 0, "", 0, ""]);
+  }
 }
 
 // Shine Car Stats
@@ -407,75 +436,88 @@ function httpsGetStats(make, model, year, callback){
     timeout: 100000
   }
 
-  var req = https.request(stats_options, function(res) {
+  try{
+    var req = https.request(stats_options, function(res) {
       res.setEncoding('utf-8');
 
       var responseString = '';
 
       res.on('data', function(data) {
-          responseString += data;
+        responseString += data;
       });
 
       res.on('end', function() {
+        try{
           var response = JSON.parse(responseString);
           var stats_car_mpg = response[0].City_Conventional_Fuel
-          callback([stats_car_mpg]);
+          callback([null, stats_car_mpg]);
+        }
+        catch(error) {
+          console.error("There was a problem getting the gas. Using 20 mpg");
+          callback([1, 20]);
+        }
       })
     })
 
-      req.on('error', function(err) {
-          /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetStats');
-          hold.emit(':responseReady');*/
-      });
-
-      req.end();
-  }
-
-// Shine Car Theft
-function httpsGet_CarTheft(state, callback) {
-    // Update these options with the details of the web service you would like to call
-    // this will return top 3rd that got stolen
-    var hold = this
-
-    var options = {
-        host: 'apis.solarialabs.com',
-        port: 443,
-        path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=` + shine_key,
-        method: 'GET',
-        timeout: 100000
-        // if x509 certs are required:
-        // key: fs.readFileSync('certs/my-key.pem'),
-        // cert: fs.readFileSync('certs/my-cert.pem')
-    };
-    var req = https.request(options, res => {
-        res.setEncoding('utf8');
-        var returnData = "";
-
-        res.on('data', chunk => {
-            returnData = returnData + chunk;
-        });
-
-        res.on('end', () => {
-            // we have now received the raw return data in the returnData variable.
-            // We can see it in the log output via:
-            // console.log(JSON.stringify(returnData))
-            // we may need to parse through it to extract the needed data
-            var data = JSON.parse(returnData);
-            //carArray.push(data[0].Make)
-            var make = data[0].Make
-            var model = data[0].Model
-            // this will execute whatever function the caller defined, with one argument
-            callback([make, model]);
-        });
-    });
-
     req.on('error', function(err) {
-        /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGet_Car');
-        hold.emit(':responseReady');*/
+      /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetStats');
+      hold.emit(':responseReady');*/
     });
 
     req.end();
+  }
+  catch(error){
+    console.error("There was a problem with the request");
+    callback([2, 0]);
+  }
+}
 
+// Shine Car Theft
+function httpsGet_CarTheft(state, callback) {
+  // Update these options with the details of the web service you would like to call
+  // this will return top 3rd that got stolen
+  var hold = this
+
+  var options = {
+    host: 'apis.solarialabs.com',
+    port: 443,
+    path: `/shine/v1/vehicle-thefts?state=${state}&rank=1&apikey=` + shine_key,
+    method: 'GET',
+    timeout: 100000
+  };
+  try{
+    var req = https.request(options, res => {
+      res.setEncoding('utf8');
+      var returnData = "";
+      res.on('data', chunk => {
+        returnData = returnData + chunk;
+      });
+
+      res.on('end', () => {
+        var data = JSON.parse(returnData);
+        try{
+          var make = data[0].Make
+          var model = data[0].Model
+          callback([null, make, model]);
+        }
+        catch(error) {
+          console.error("There was a problem with the api call");
+          callback([2, "", ""]);
+        }
+      });
+    });
+
+    req.on('error', function(err) {
+      /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGet_Car');
+      hold.emit(':responseReady');*/
+    });
+
+    req.end();
+  }
+  catch(error) {
+    console.error("There was a problem with the request");
+    callback([2, "", ""]);
+  }
 }
 
 // MyGasFeed gets average price of gas around the starting location
@@ -494,14 +536,12 @@ function get_price(lat, long, callback) {
         var data = JSON.parse(body);
         //console.log(data)
         var sum_price = 0;
-
         for(var i = 0; i < data.stations.length; i++)
         {
-            var listprice = data.stations[i].reg_price
-            if (listprice != "N\/A"){
-
-          sum_price += Number(listprice)
-            }
+          var listprice = data.stations[i].reg_price
+          if (listprice != "N\/A"){
+            sum_price += Number(listprice)
+          }
         }
         var avg_price = (sum_price/data.stations.length)
         callback([avg_price]);
@@ -510,36 +550,197 @@ function get_price(lat, long, callback) {
 
 // GooglePlace
 function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
-    var hold = this
+  var hold = this
 
-    var options = {
-        host: 'maps.googleapis.com',
-        port: 443,
-        path: '/maps/api/place/nearbysearch/json?location=' + lat + ',' + long + '&rankby=' + rankby + '&type=' + types + '&key=' + googleplace_key,
-        method: 'GET',
-        timeout: 100000
-    };
+  var options = {
+      host: 'maps.googleapis.com',
+      port: 443,
+      path: '/maps/api/place/nearbysearch/json?location=' + lat + ',' + long + '&rankby=' + rankby + '&type=' + types + '&key=' + googleplace_key,
+      method: 'GET',
+      timeout: 100000
+  };
+  try{
     var req = https.request(options, res => {
-        res.setEncoding('utf8');
-        var returnData = "";
-        res.on('data', chunk => {
-            returnData = returnData + chunk;
-        });
+      res.setEncoding('utf8');
+      var returnData = "";
+      res.on('data', chunk => {
+        returnData = returnData + chunk;
+      });
 
-        res.on('end', () => {
-            var pop = JSON.parse(returnData);
-            var name = pop.results[0].name;
-            var lat = Number(pop.results[0].geometry.location.lat);
-            var lng = Number(pop.results[0].geometry.location.lng);
-            var rate = pop.results[0].rating||3;
-            callback([lat, long, rate, name])
-        });
+      res.on('end', () => {
+        var pop = JSON.parse(returnData);
+        try{
+          var name = pop.results[0].name;
+          var lat = Number(pop.results[0].geometry.location.lat);
+          var lng = Number(pop.results[0].geometry.location.lng);
+          var rate = pop.results[0].rating||3;
+          callback([null, lat, long, rate, name])
+        }
+        catch(error) {
+          console.error("There was a problem with the api call");
+          callback([2, 0, 0, "", ""]);
+        }
+      });
     });
 
-    req.on('error', function(err) {
-        /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetmyGoogleplace');
-        hold.emit(':responseReady');*/
+   req.on('error', function(err) {
+      /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetmyGoogleplace');
+      hold.emit(':responseReady');*/
     });
 
     req.end();
+  }
+  catch(error) {
+    console.error("There was a problem with the request");
+    callback([2, 0, 0, "", ""]);
+  }
+}
+
+//Posts the Coordinates to a database
+function httpsPost_Cooridinates(lat, long, callback) {
+    post_data = {
+      "lat" : lat,
+      "long" : long
+    }
+
+    var post_options = {
+        host:  'mapout-mockdb-4ead8.firebaseio.com',
+        port: '443',
+        path: '/Coordinates.json',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(JSON.stringify(post_data))
+        }
+    };
+
+      var post_req = https.request(post_options, res => {
+          res.setEncoding('utf8');
+          var returnData = "";
+          res.on('data', chunk =>  {
+              returnData += chunk;
+          });
+          res.on('end', () => {
+              // this particular API returns a JSON structure:
+              // returnData: {"usstate":"New Jersey","population":9000000}
+              console.log(returnData)
+              var name = JSON.parse(returnData).name;
+              callback([name]);
+          });
+      });
+
+      //console.log("post_data: " + JSON.stringify(post_data))
+      post_req.write(JSON.stringify(post_data));
+      post_req.end();
+}
+
+//To go from full name in slot to abbreviated code for carTheft
+function convertToAbbr(input) {
+    var states = [
+        ['Alabama', 'AL'],
+        ['Alaska', 'AK'],
+        ['American Samoa', 'AS'],
+        ['Arizona', 'AZ'],
+        ['Arkansas', 'AR'],
+        ['Armed Forces Americas', 'AA'],
+        ['Armed Forces Europe', 'AE'],
+        ['Armed Forces Pacific', 'AP'],
+        ['California', 'CA'],
+        ['Colorado', 'CO'],
+        ['Connecticut', 'CT'],
+        ['Delaware', 'DE'],
+        ['District Of Columbia', 'DC'],
+        ['Florida', 'FL'],
+        ['Georgia', 'GA'],
+        ['Guam', 'GU'],
+        ['Hawaii', 'HI'],
+        ['Idaho', 'ID'],
+        ['Illinois', 'IL'],
+        ['Indiana', 'IN'],
+        ['Iowa', 'IA'],
+        ['Kansas', 'KS'],
+        ['Kentucky', 'KY'],
+        ['Louisiana', 'LA'],
+        ['Maine', 'ME'],
+        ['Marshall Islands', 'MH'],
+        ['Maryland', 'MD'],
+        ['Massachusetts', 'MA'],
+        ['Michigan', 'MI'],
+        ['Minnesota', 'MN'],
+        ['Mississippi', 'MS'],
+        ['Missouri', 'MO'],
+        ['Montana', 'MT'],
+        ['Nebraska', 'NE'],
+        ['Nevada', 'NV'],
+        ['New Hampshire', 'NH'],
+        ['New Jersey', 'NJ'],
+        ['New Mexico', 'NM'],
+        ['New York', 'NY'],
+        ['North Carolina', 'NC'],
+        ['North Dakota', 'ND'],
+        ['Northern Mariana Islands', 'NP'],
+        ['Ohio', 'OH'],
+        ['Oklahoma', 'OK'],
+        ['Oregon', 'OR'],
+        ['Pennsylvania', 'PA'],
+        ['Puerto Rico', 'PR'],
+        ['Rhode Island', 'RI'],
+        ['South Carolina', 'SC'],
+        ['South Dakota', 'SD'],
+        ['Tennessee', 'TN'],
+        ['Texas', 'TX'],
+        ['US Virgin Islands', 'VI'],
+        ['Utah', 'UT'],
+        ['Vermont', 'VT'],
+        ['Virginia', 'VA'],
+        ['Washington', 'WA'],
+        ['West Virginia', 'WV'],
+        ['Wisconsin', 'WI'],
+        ['Wyoming', 'WY'],
+    ];
+
+    // So happy that Canada and the US have distinct abbreviations
+    var provinces = [
+        ['Alberta', 'AB'],
+        ['British Columbia', 'BC'],
+        ['Manitoba', 'MB'],
+        ['New Brunswick', 'NB'],
+        ['Newfoundland', 'NF'],
+        ['Northwest Territory', 'NT'],
+        ['Nova Scotia', 'NS'],
+        ['Nunavut', 'NU'],
+        ['Ontario', 'ON'],
+        ['Prince Edward Island', 'PE'],
+        ['Quebec', 'QC'],
+        ['Saskatchewan', 'SK'],
+        ['Yukon', 'YT'],
+    ];
+
+  var regions = states.concat(provinces);
+  var state = String(input)
+  for (var i = 0; i < regions.length; i++) {
+    if (regions[i][0].toLowerCase() == state.toLowerCase()) {
+      return (regions[i][1]);
+    }
+  }
+}
+
+//Checks for Errors and whether or not they were fatal or not
+function checkErrors( arr ){
+  var flag = 0;
+
+  for( var i = 0; i < arr.length; i++ )
+  {
+    if( arr[i] == 1 )
+    {
+      flag = 1;
+    }
+    else if( arr[i] == 2 )
+    {
+      flag = 2;
+      i = arr.length;
+    }
+  }
+
+  return flag;
 }
