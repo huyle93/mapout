@@ -15,8 +15,8 @@ let speechOutput;
 let reprompt;
 const welcomeOutput = [
     "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.",
-    `Thank you for using <phoneme alphabet="ipa" ph="mæp.aʊt">pecan</phoneme>. I am your own personal trip advisor. To begin simply say, let's plan a trip.`,
-    `Hi. Welcome to <phoneme alphabet="ipa" ph="mæp.aʊt">pecan</phoneme>. In just a few steps I can help you plan for your trip. To start, say, let's plan a trip.`,
+    `Thank you for using <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. I am your own personal trip advisor. To begin simply say, let's plan a trip.`,
+    `Hi. Welcome to <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. In just a few steps I can help you plan for your trip. To start, say, let's plan a trip.`,
   ]
 
 const welcomeReprompt = "Let me know where you'd like to go or when you'd like to go on your trip";
@@ -47,7 +47,7 @@ var districtOrCounty =  "";
 
 const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 var myCoordinates = []
-var db_id;
+var postOnce = 0;
 const handlers = {
     'LaunchRequest': function () {
         var speechOutput = randomPhrase(welcomeOutput);
@@ -70,10 +70,12 @@ const handlers = {
         var start_addr = `${addressLine1} ${starting_city} ${starting_state}`
         httpsGet_Geocode.call(this, start_addr, (start_geocode) => {
           myCoordinates = [start_geocode[1],start_geocode[2]]
-          httpsPost_Cooridinates( myCoordinates[0], myCoordinates[1], id => {
-            db_id = id[0];
-          })
         })
+
+        var deviceId = this.event.context.System.device.deviceId;
+        deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1));
+        httpsPost_Cooridinates( deviceId, myCoordinates[0], myCoordinates[1] )
+
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
 
@@ -155,7 +157,7 @@ const handlers = {
             })
           })
         });
-        onlyOnce = 0;
+        postOnce = 0;
     },
     'AMAZON.HelpIntent': function () {
         speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. You can start by saying, Let's plan a trip";
@@ -313,7 +315,7 @@ function GetCurrentAddress(callback) {
           console.log(error.message);
       });
   } else {
-      this.response.speak('Please grant skill permissions to access your device address.');
+      this.response.speak('Please grant skill permissions to access your device address. Doing so will allow us to give you the most accurate estimations about your trip.');
       const permissions = ['read::alexa:device:all:address'];
       this.response.askForPermissionsConsentCard(permissions);
       console.log("Response: " + JSON.stringify(this.response));
@@ -597,7 +599,7 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
 }
 
 //Posts the Coordinates to a database
-function httpsPost_Cooridinates(lat, long, callback) {
+function httpsPost_Cooridinates(deviceId, lat, long) {
     post_data = {
       "lat" : lat,
       "long" : long
@@ -606,7 +608,7 @@ function httpsPost_Cooridinates(lat, long, callback) {
     var post_options = {
         host:  'mapout-mockdb-4ead8.firebaseio.com',
         port: '443',
-        path: '/Coordinates.json',
+        path: `/Coordinates/${deviceId}/.json`,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -625,12 +627,19 @@ function httpsPost_Cooridinates(lat, long, callback) {
               // returnData: {"usstate":"New Jersey","population":9000000}
               console.log(returnData)
               var name = JSON.parse(returnData).name;
-              callback([name]);
           });
       });
 
       //console.log("post_data: " + JSON.stringify(post_data))
-      post_req.write(JSON.stringify(post_data));
+      if( postOnce === 0)
+      {
+        post_req.write(JSON.stringify(post_data));
+        postOnce = 1;
+      }
+
+      post_req.on('error', function(err) {
+      });
+
       post_req.end();
 }
 

@@ -459,19 +459,19 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "What town or city are you planning on taking a trip to?"
+                        "value": "Awesome. Lets get some information about your trip. What town or city are you planning on taking a trip to?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "What is the name of the city or town you want to visit?"
+                        "value": "Great. Let me ask you some questions about your trip. First, what is the name of the city or town you want to visit?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Which city or town would you like to make a trip to?"
+                        "value": "Okay. Please allow me to get some information about your trip. Which city or town would you like to make a trip to?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Which city or town are you going to?"
+                        "value": "Let's go. First let me get a little bit of information about your trip. Which city or town are you going to?"
                     }
                 ]
             },
@@ -596,6 +596,10 @@
                 "variations": [
                     {
                         "type": "PlainText",
+                        "value": "You would like to go to {places} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
                         "value": "To confirm, you would like to go to {places} ?"
                     },
                     {
@@ -609,6 +613,10 @@
                 "variations": [
                     {
                         "type": "PlainText",
+                        "value": "You would like to go to {toCity} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
                         "value": "To confirm, you want to go to {toCity} ?"
                     },
                     {
@@ -620,6 +628,10 @@
             {
                 "id": "Confirm.Slot.1326298737306.123850564944",
                 "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "You would like to go to {toState} , yes or no?"
+                    },
                     {
                         "type": "PlainText",
                         "value": "To confirm, you want to go to {toState} ?"
