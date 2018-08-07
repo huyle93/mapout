@@ -36,6 +36,13 @@ const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 var myCoordinates = []
 const handlers = {
     'LaunchRequest': function () {
+            //if no amazon token, return a LinkAccount card
+   if (this.event.session.user.accessToken == undefined) {
+    this.emit(':tellWithLinkAccountCard',
+              'to start using this skill, please use the companion app to authenticate on Amazon'); 
+          return;
+
+      }
         this.response.speak(welcomeOutput).listen(welcomeReprompt);
         this.emit(':responseReady');
     },
