@@ -55,10 +55,17 @@ var myCoordinates = [] //The lat and long of the user will be stored here and us
 const handlers = {
     'LaunchRequest': function () {  //Welcomes the user and asks for them to prompt the PlanMyTrip intent
       postData.call(this);
-      var speechOutput = helper.randomPhrase(welcomeOutput); //get a random welcome speech to begin the skill
-      this.response.speak(speechOutput).listen(welcomeReprompt);
-      this.emit(':responseReady');
-    },
+      //var speechOutput = helper.randomPhrase(welcomeOutput); //get a random welcome speech to begin the skill
+      if (this.event.session.user.accessToken == undefined) {
+        this.emit(':tellWithLinkAccountCard',
+                  'to start using this skill, please use the companion app to authenticate on Amazon'); 
+              return;
+    
+          }
+            var speechOutput = randomPhrase(welcomeOutput);
+            this.response.speak(speechOutput).listen(welcomeReprompt);
+            this.emit(':responseReady');
+        },
     'PlanMyTrip': function () {
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
