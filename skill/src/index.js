@@ -53,34 +53,14 @@ var districtOrCounty =  "";
 
 const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 var myCoordinates = [] //The lat and long of the user will be stored here and used to get information
-var postOnce = 0; //Check to see if the post has already been written and if it has don't post again
 const handlers = {
     'LaunchRequest': function () {  //Welcomes the user and asks for them to prompt the PlanMyTrip intent
+      postData.call(this);
       var speechOutput = randomPhrase(welcomeOutput); //get a random welcome speech to begin the skill
       this.response.speak(speechOutput).listen(welcomeReprompt);
       this.emit(':responseReady');
     },
     'PlanMyTrip': function () {
-        var getAddr = GetCurrentAddress.call( this, (addr_info) => { //get the starting location of the ALexa device
-            starting_state = addr_info[0];
-            starting_city = addr_info[1];
-            countryCode = addr_info[2];
-            postalCode = addr_info[3];
-            addressLine1 = addr_info[4];
-            addressLine2 = addr_info[5];
-            addressLine3 = addr_info[6];
-            districtOrCounty =  addr_info[7];
-        });
-
-        var start_addr = `${addressLine1} ${starting_city} ${starting_state}` //The starting location as a string to help ensure accuracy
-        httpsGet_Geocode.call(this, start_addr, (start_geocode) => { //get the lat and long of the starting location
-          myCoordinates = [start_geocode[1],start_geocode[2]]
-        })
-
-        var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
-        deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1)); //Just makes it so the path is valid by eliminating the "."
-        httpsPost_Cooridinates( deviceId, myCoordinates[0], myCoordinates[1] ) //post the cooridinates to be used later
-
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
 
@@ -162,7 +142,6 @@ const handlers = {
             })
           })
         });
-        postOnce = 0; //reset postOnce
     },
     'AMAZON.HelpIntent': function () { //If the user needs help to know what this skill is explain.
         speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. You can start by saying, Let's plan a trip";
@@ -285,6 +264,28 @@ function getFinalMessage( address, parking_name, parking_rating, durationtext, d
   }
 
   return speechOutput;
+}
+
+function postData(){
+  var getAddr = GetCurrentAddress.call( this, (addr_info) => { //get the starting location of the ALexa device
+      starting_state = addr_info[0];
+      starting_city = addr_info[1];
+      countryCode = addr_info[2];
+      postalCode = addr_info[3];
+      addressLine1 = addr_info[4];
+      addressLine2 = addr_info[5];
+      addressLine3 = addr_info[6];
+      districtOrCounty =  addr_info[7];
+  });
+
+  var start_addr = `${addressLine1} ${starting_city} ${starting_state}` //The starting location as a string to help ensure accuracy
+  httpsGet_Geocode.call(this, start_addr, (start_geocode) => { //get the lat and long of the starting location
+    myCoordinates = [start_geocode[1],start_geocode[2]]
+  })
+
+  var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
+  deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1)); //Just makes it so the path is valid by eliminating the "."
+  httpsPost_Cooridinates( deviceId, myCoordinates[0], myCoordinates[1] ) //post the cooridinates to be used later
 }
 
 // API KEYS
@@ -635,16 +636,10 @@ function httpsPost_Cooridinates(deviceId, lat, long) {
           });
       });
 
-      //console.log("post_data: " + JSON.stringify(post_data))
-      if( postOnce === 0)
-      {
-        post_req.write(JSON.stringify(post_data));
-        postOnce = 1;
-      }
-
       post_req.on('error', function(err) {
       });
 
+      post_req.write(JSON.stringify(post_data));
       post_req.end();
 }
 
