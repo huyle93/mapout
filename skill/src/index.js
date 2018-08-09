@@ -13,26 +13,33 @@ require('dotenv').load();
 
 let speechOutput;
 let reprompt;
+
+//A couple of welcome prompts to be chosen randomly at the start of the program
 const welcomeOutput = [
     "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.",
     `Thank you for using <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. I am your own personal trip advisor. To begin simply say, let's plan a trip.`,
     `Hi. Welcome to <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. In just a few steps I can help you plan for your trip. To start, say, let's plan a trip.`,
   ]
 
+//If a reprompt is required this will be said
 const welcomeReprompt = "Let me know where you'd like to go or when you'd like to go on your trip";
 
+//At the beginning of the final messsage one of these will be chosen randomly
 const tripIntro = [
     "This sounds like a cool trip. ",
     "This will be fun. ",
     "Oh, I like this trip. "
 ];
 
+//If during the skill the user decides to stop one of these responses will be
+//emitted to gracefully end the skill.
 const cancelResponse = [
   "Okay. I hope you will use us again soon.",
   "Goodbye. Let me know when you want to next plan a trip.",
   "Alright. I hope to help you plan a trip later."
 ]
 
+//Variables that will be used to store the "current location" of the user
 var starting_state = "NH";
 var starting_city = "Durham";
 var countryCode = "US";
@@ -42,21 +49,19 @@ var addressLine2 = "";
 var addressLine3 = "";
 var districtOrCounty =  "";
 
-
 // 2. Skill Code =======================================================================================================
 
 const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
-var myCoordinates = []
-var postOnce = 0;
+var myCoordinates = [] //The lat and long of the user will be stored here and used to get information
+var postOnce = 0; //Check to see if the post has already been written and if it has don't post again
 const handlers = {
-    'LaunchRequest': function () {
-        var speechOutput = randomPhrase(welcomeOutput);
-        this.response.speak(speechOutput).listen(welcomeReprompt);
-        this.emit(':responseReady');
+    'LaunchRequest': function () {  //Welcomes the user and asks for them to prompt the PlanMyTrip intent
+      var speechOutput = randomPhrase(welcomeOutput); //get a random welcome speech to begin the skill
+      this.response.speak(speechOutput).listen(welcomeReprompt);
+      this.emit(':responseReady');
     },
     'PlanMyTrip': function () {
-        //get current addressLine1
-        var getAddr = GetCurrentAddress.call( this, (addr_info) => {
+        var getAddr = GetCurrentAddress.call( this, (addr_info) => { //get the starting location of the ALexa device
             starting_state = addr_info[0];
             starting_city = addr_info[1];
             countryCode = addr_info[2];
@@ -67,14 +72,14 @@ const handlers = {
             districtOrCounty =  addr_info[7];
         });
 
-        var start_addr = `${addressLine1} ${starting_city} ${starting_state}`
-        httpsGet_Geocode.call(this, start_addr, (start_geocode) => {
+        var start_addr = `${addressLine1} ${starting_city} ${starting_state}` //The starting location as a string to help ensure accuracy
+        httpsGet_Geocode.call(this, start_addr, (start_geocode) => { //get the lat and long of the starting location
           myCoordinates = [start_geocode[1],start_geocode[2]]
         })
 
-        var deviceId = this.event.context.System.device.deviceId;
-        deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1));
-        httpsPost_Cooridinates( deviceId, myCoordinates[0], myCoordinates[1] )
+        var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
+        deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1)); //Just makes it so the path is valid by eliminating the "."
+        httpsPost_Cooridinates( deviceId, myCoordinates[0], myCoordinates[1] ) //post the cooridinates to be used later
 
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
@@ -101,50 +106,50 @@ const handlers = {
         var model = "camry"
         var year = 2013
 
-        var to_addr = `${address} ${toCity}`
-        var state = convertToAbbr(toState);
-        speechOutput += `from ${starting_city}, ${starting_state} to ${to_addr}, ${toState} on ${travelDate}`
+        var to_addr = `${address} ${toCity} ${toState}` //The end location as a string to help ensure accuracy
+        var state = convertToAbbr(toState); //gets the state they are going to as the state code to be used for the carTheft API
+        speechOutput += `from ${starting_city}, ${starting_state} to ${to_addr}, ${toState} on ${travelDate}` //output for final message
 
         // Calling API
-        httpsGet_Geocode.call(this, to_addr, (geocode) => {
-          var errors = [];
-          errors.push(geocode[0]);
+        httpsGet_Geocode.call(this, to_addr, (geocode) => { //Gets the lat and long of the end location
+          var errors = []; //checks to see if an error occurs and what type so we can give the appropriate message back
+          errors.push(geocode[0]); //The first variable in the callbacks defines if there is a error and if its fatal or not. This gets pushed to an array to be checked later
           var lat = geocode[1] // int
           var long = geocode[2] // int
-          httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => {
+          httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => { //gets the lat, long, rating, and name of the parking we recommend
             errors.push(place[0])
             var parking_lat = place[1]
             var parking_long = place[2]
             var parking_rating = place[3]
             var parking_name = place[4]
-            httpsGet_Matrix(lat, long, (matrix) => {
+            httpsGet_Matrix(lat, long, (matrix) => { //gets the estimated time and distance of your trip
               errors.push(matrix[0])
               var distancevalue = matrix[1] // int
               var distancetext = matrix[2]
               var durationvalue = matrix[3] // int
               var durationtext = matrix[4]
-              httpsGetStats(make, model, year, (stats) => {
+              httpsGetStats(make, model, year, (stats) => { //gets the mpg of the user car
                 errors.push(stats[0]);
                 var mpg = Number(stats[1]);
-                httpsGet_CarTheft("MA", (theft) => {
+                httpsGet_CarTheft("MA", (theft) => { //gets the most commonly stolen car in the state you are traveling to
                   errors.push(theft[0]);
                   var theftCarMake = theft[1];
                   var theftCarModel = theft[2];
-                  var theftCar = `${theftCarMake} ${theftCarModel}`
+                  var theftCar = `${theftCarMake} ${theftCarModel}` //made a string to be compared with the car you provided with the most commonly stolen car
                   var myCar = `${make} ${model}`
-                  get_price(myCoordinates[0], myCoordinates[1], (price) => {
+                  get_price(myCoordinates[0], myCoordinates[1], (price) => { //gets average gas price around the starting location of the user
                     var gasPrice = price[0];
                     var distance = getMiles(distancevalue);
-                    var gasCost = Math.ceil((gasPrice * distance) / mpg)
-                    speechOutput += getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar);
-                    var checkForErrors = checkErrors( errors );
-                    if(checkForErrors != 0 )
+                    var gasCost = Math.ceil((gasPrice * distance) / mpg) //gets estimated gas cost for the trip using the mpg, gas price, and distance
+                    speechOutput += getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar); //gets the randomized final message to be spoken
+                    var checkForErrors = checkErrors( errors ); //checks to see if any errors occur
+                    if(checkForErrors != 0 ) //if no errors just proceed normally
                     {
-                      if( checkForErrors == 1)
+                      if( checkForErrors == 1) //if there is a one that means there is a non-fatal error that can use a default value and still function
                       {
                         speechOutput += " Just a heads up. There was a non fatal error that occured. A default value has been placed but should be close to accurate."
                       }
-                      else if( checkForErrors == 2)
+                      else if( checkForErrors == 2) //if there is a two there is a fatal error that will not allow for functionality of the skill. Fail gracefully with a message
                       {
                         speechOutput = " There was a fatal error occured. We're very sorry! Please try again."
                       }
@@ -157,25 +162,25 @@ const handlers = {
             })
           })
         });
-        postOnce = 0;
+        postOnce = 0; //reset postOnce
     },
-    'AMAZON.HelpIntent': function () {
+    'AMAZON.HelpIntent': function () { //If the user needs help to know what this skill is explain.
         speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. You can start by saying, Let's plan a trip";
         reprompt = "Say let's plan a trip when you are ready to begin.";
         this.response.speak(speechOutput).listen(reprompt);
         this.emit(':responseReady');
     },
-    'AMAZON.CancelIntent': function () {
+    'AMAZON.CancelIntent': function () { //if canceled give a random cancel response
         var speechOutput = randomPhrase(cancelResponse);
         this.response.speak(speechOutput);
         this.emit(':responseReady');
     },
-    'AMAZON.StopIntent': function () {
+    'AMAZON.StopIntent': function () { //if stopped give a random cancel response
         var speechOutput = randomPhrase(cancelResponse);
         this.response.speak(speechOutput);
         this.emit(':responseReady');
     },
-    'SessionEndedRequest': function () {
+    'SessionEndedRequest': function () { //Thank them for using mapout at the end of the skill
         var speechOutput = "Thank you for using Mapout.";
         this.response.speak(speechOutput);
         this.emit(':responseReady');
@@ -217,7 +222,7 @@ function delegateSlotCollection() {
     }
 }
 
-function randomPhrase(array) {
+function randomPhrase(array) { //picks a random phrase from an array
     // the argument is an array [] of words or phrases
     var i = 0;
     i = Math.floor(Math.random() * array.length);
@@ -241,23 +246,23 @@ function isSlotValid(request, slotName) {
 }
 
 // ======================== Custom functions ======================= //
-// Gets the final randomized message
+// Gets the final randomized message for the distance, duration, parking, gas, and possibly a theft warning
 function getFinalMessage( address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar){
   var distanceAndDuration_response = [
-    //`. We anticipate this trip will take you ${durationtext} to get there and be a total distance of ${distancetext}`,
-    //`. Based off of our estimations your trip will be about ${durationtext} long over ${distancetext}`,
+    `. We anticipate this trip will take you ${durationtext} to get there and be a total distance of ${distancetext}`,
+    `. Based off of our estimations your trip will be about ${durationtext} long over ${distancetext}`,
     `. This trip will be approximately ${distancetext} over the course of ${durationtext}`
   ]
 
   var parking_response  = [
-    //`. . The closest parking we could find to ${address} is ${parking_name}. Their rating is a ${parking_rating}`,
-    //`. . We found some parking close to ${address} for you. ${parking_name}'s rating is ${parking_rating}`,
+    `. . The closest parking we could find to ${address} is ${parking_name}. Their rating is a ${parking_rating}`,
+    `. . We found some parking close to ${address} for you. ${parking_name}'s rating is ${parking_rating}`,
     `. . The closest place we could find parking for you will be ${parking_name} with a rating of ${parking_rating}`
   ]
 
   var gas_response  = [
-    //`. We estimate the cost of gas on this trip will be approximately $${gasCost} one way or $${(gasCost*2)} for the roundtrip`,
-    //`. Based on the distance and fuel efficiency of your car your cost for gas for this trip will be about $${gasCost} one way or $${(gasCost*2)} roundtrip`,
+    `. We estimate the cost of gas on this trip will be approximately $${gasCost} one way or $${(gasCost*2)} for the roundtrip`,
+    `. Based on the distance and fuel efficiency of your car your cost for gas for this trip will be about $${gasCost} one way or $${(gasCost*2)} roundtrip`,
     `. This trip will cost around $${gasCost} one way or $${(gasCost*2)} roundtrip based on the fuel efficiency of your car and distance of the trip`,
   ]
 
@@ -289,7 +294,7 @@ var googleplace_key = process.env.GOOGLEPLACE_KEY
 var google_key = process.env.GOOGLE_KEY
 var gas_key = process.env.GAS_KEY
 
-//Gets Address from Amazon
+//Gets Address of the device from Amazon
 function GetCurrentAddress(callback) {
     if(this.event.context.System.user.permissions) {
       const token = this.event.context.System.user.permissions.consentToken;
@@ -355,11 +360,11 @@ function httpsGet_Geocode(myData, callback) {
           var pop = JSON.parse(returnData);
           var lat = Number(pop.results[0].geometry.location.lat);
           var lng = Number(pop.results[0].geometry.location.lng);
-          callback([null, lat, lng]);
+          callback([null, lat, lng]); //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
         }
         catch(error) {
           console.error("There was a problem with the google API");
-          callback([2, 0, 0]);
+          callback([2, 0, 0]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
         }
       });
     });
@@ -374,7 +379,7 @@ function httpsGet_Geocode(myData, callback) {
   }
   catch(error) {
     console.error("There was a problem with the request");
-    callback([2, 0, 0]);
+    callback([2, 0, 0]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
   }
 }
 
@@ -405,11 +410,11 @@ function httpsGet_Matrix(lat, long, callback) {
               var distancetext = data.rows[0].elements[0].distance.text;
               var durationvalue = data.rows[0].elements[0].duration.value;
               var durationtext = data.rows[0].elements[0].duration.text;
-              callback([null, distancevalue, distancetext, durationvalue, durationtext]);
+              callback([null, distancevalue, distancetext, durationvalue, durationtext]);  //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
             }
             catch(error) {
               console.error("There was a problem with the api call");
-              callback([2, 0, "", 0, ""]);
+              callback([2, 0, "", 0, ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
             }
         });
     });
@@ -423,7 +428,7 @@ function httpsGet_Matrix(lat, long, callback) {
   }
   catch(error) {
     console.error("There was a problem with the request");
-    callback([2, 0, "", 0, ""]);
+    callback([2, 0, "", 0, ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
   }
 }
 
@@ -452,11 +457,11 @@ function httpsGetStats(make, model, year, callback){
         try{
           var response = JSON.parse(responseString);
           var stats_car_mpg = response[0].City_Conventional_Fuel
-          callback([null, stats_car_mpg]);
+          callback([null, stats_car_mpg]);  //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
         }
         catch(error) {
           console.error("There was a problem getting the gas. Using 20 mpg");
-          callback([1, 20]);
+          callback([1, 20]); //here is an example of a non-fatal error signaled with a "1". The other variable is a default value
         }
       })
     })
@@ -470,7 +475,7 @@ function httpsGetStats(make, model, year, callback){
   }
   catch(error){
     console.error("There was a problem with the request");
-    callback([2, 0]);
+    callback([2, 0]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
   }
 }
 
@@ -500,11 +505,11 @@ function httpsGet_CarTheft(state, callback) {
         try{
           var make = data[0].Make
           var model = data[0].Model
-          callback([null, make, model]);
+          callback([null, make, model]);  //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
         }
         catch(error) {
           console.error("There was a problem with the api call");
-          callback([2, "", ""]);
+          callback([2, "", ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
         }
       });
     });
@@ -518,7 +523,7 @@ function httpsGet_CarTheft(state, callback) {
   }
   catch(error) {
     console.error("There was a problem with the request");
-    callback([2, "", ""]);
+    callback([2, "", ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
   }
 }
 
@@ -576,11 +581,11 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
           var lat = Number(pop.results[0].geometry.location.lat);
           var lng = Number(pop.results[0].geometry.location.lng);
           var rate = pop.results[0].rating||3;
-          callback([null, lat, long, rate, name])
+          callback([null, lat, long, rate, name])  //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
         }
         catch(error) {
           console.error("There was a problem with the api call");
-          callback([2, 0, 0, "", ""]);
+          callback([2, 0, 0, "", ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
         }
       });
     });
@@ -594,7 +599,7 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
   }
   catch(error) {
     console.error("There was a problem with the request");
-    callback([2, 0, 0, "", ""]);
+    callback([2, 0, 0, "", ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
   }
 }
 
