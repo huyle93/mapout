@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "trip advisor",
+            "invocationName": "mapout",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -36,12 +36,23 @@
                             "name": "toCity",
                             "type": "AMAZON.US_CITY",
                             "samples": [
+                                "{places} {toCity} {toState}",
+                                "{toCity} {toState}",
                                 "i'd like to go to {toCity} ",
                                 "{toCity} ",
                                 "I'd like to visit {toCity} ",
                                 "we're going to {toCity} ",
-                                "i will leave on {travelDate} ",
                                 "I will go to {toCity}  on {travelDate} "
+                            ]
+                        },
+                        {
+                            "name": "toState",
+                            "type": "AMAZON.US_STATE",
+                            "samples": [
+                                "{toState} ",
+                                "going to {toState} ",
+                                "to {toState} ",
+                                "my trip ends in {toState} "
                             ]
                         },
                         {
@@ -51,16 +62,6 @@
                                 "{places}",
                                 "i want to go {places}",
                                 "i want to go to {places}"
-                            ]
-                        },
-                        {
-                            "name": "fromCity",
-                            "type": "AMAZON.US_CITY",
-                            "samples": [
-                                "{fromCity} ",
-                                "leaving from {fromCity} ",
-                                "from {fromCity} ",
-                                "my trip starts in {fromCity} "
                             ]
                         },
                         {
@@ -82,41 +83,72 @@
                         },
                         {
                             "name": "make",
-                            "type": "make_type",
-                            "samples": [
-                                "{make}",
-                                "my car is {make}"
-                            ]
+                            "type": "make_type"
                         },
                         {
                             "name": "model",
-                            "type": "model_type",
-                            "samples": [
-                                "my car is {make} {model}",
-                                "{model}"
-                            ]
+                            "type": "model_type"
                         },
                         {
                             "name": "year",
-                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
-                            "samples": [
-                                "{year}",
-                                "the year is {year}",
-                                "it is {year}"
-                            ]
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER"
                         }
                     ],
                     "samples": [
                         "I'm going on a trip {travelDate} ",
                         "i want to {go_synonyms} {places}",
-                        "I want to {go_synonyms} from {fromCity} to {toCity} {travelDate} ",
+                        "I want to {go_synonyms} from {toState} to {toCity} {travelDate} ",
                         "Plan a trip",
                         "I'll {go_synonyms} to {places}  on the {travelDate} ",
                         "let's plan a trip",
                         "I will {go_synonyms} to {places}  on the {travelDate} ",
-                        "I will {go_synonyms} to {places} from {fromCity} on the {travelDate}",
-                        "I will {go_synonyms} to {places} from {fromCity} on the {travelDate} by {make} {model} {year}"
+                        "I will {go_synonyms} to {places} from {toState} on the {travelDate}",
+                        "I will {go_synonyms} to {places} from {toState} on the {travelDate} by {make} {model} {year}"
                     ]
+                },
+                {
+                    "name": "AMAZON.MoreIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateSettingsIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NextIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PageUpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PageDownIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PreviousIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ScrollRightIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ScrollDownIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ScrollLeftIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ScrollUpIntent",
+                    "samples": []
                 }
             ],
             "types": [
@@ -346,28 +378,31 @@
                         {
                             "name": "toCity",
                             "type": "AMAZON.US_CITY",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.1326298737306.136510581693",
                                 "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-toCity"
+                            }
+                        },
+                        {
+                            "name": "toState",
+                            "type": "AMAZON.US_STATE",
+                            "confirmationRequired": true,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "confirmation": "Confirm.Slot.1326298737306.123850564944",
+                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-fromCity"
                             }
                         },
                         {
                             "name": "places",
                             "type": "AMAZON.StreetAddress",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.439339772331.438305179558",
                                 "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-places"
-                            }
-                        },
-                        {
-                            "name": "fromCity",
-                            "type": "AMAZON.US_CITY",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-fromCity"
                             }
                         },
                         {
@@ -397,28 +432,22 @@
                             "name": "make",
                             "type": "make_type",
                             "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-make"
-                            }
+                            "elicitationRequired": false,
+                            "prompts": {}
                         },
                         {
                             "name": "model",
                             "type": "model_type",
                             "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-model"
-                            }
+                            "elicitationRequired": false,
+                            "prompts": {}
                         },
                         {
                             "name": "year",
                             "type": "AMAZON.FOUR_DIGIT_NUMBER",
                             "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Intent-PlanMyTrip.IntentSlot-year"
-                            }
+                            "elicitationRequired": false,
+                            "prompts": {}
                         }
                     ]
                 }
@@ -430,7 +459,19 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Which city or town are you going to?"
+                        "value": "Awesome. Lets get some information about your trip. What town or city are you planning on taking a trip to?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Great. Let me ask you some questions about your trip. First, what is the name of the city or town you want to visit?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Okay. Please allow me to get some information about your trip. Which city or town would you like to make a trip to?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Let's go. First let me get a little bit of information about your trip. Which city or town are you going to?"
                     }
                 ]
             },
@@ -439,7 +480,15 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "What place would you like to visit?"
+                        "value": "What is the name or address in {toCity} {toState} you would like to visit?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Where are you planning on going while you visit {toCity} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Where in {toCity} , {toState} will you be visiting?"
                     }
                 ]
             },
@@ -448,11 +497,19 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "What city or town are you leaving from?"
+                        "value": "What state is {toCity} in?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Where will you be starting your trip from?"
+                        "value": "Which state is {toCity} located in?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "What state will you be traveling to?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Which state are you visiting?"
                     }
                 ]
             },
@@ -461,7 +518,15 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "When will you start this trip?"
+                        "value": "Which day are you planning on making this trip to {places} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "What day are you planning this trip for {toCity} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "When will you start this trip to {toCity} ?"
                     }
                 ]
             },
@@ -470,7 +535,11 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Great! Let me get some information about your car to give you some estimations about your trip. What brand is your car? Something like Toyota or Honda"
+                        "value": "Awesome. Now let's get some information about your car so I may give you a couple estimations about your trip. What is the brand name of your car. Something like Chevy, or Ford?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Great. Let me get some information about your car to give you some estimations about your trip. What brand is your car. Something like Toyota, or Honda?"
                     }
                 ]
             },
@@ -479,7 +548,15 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "What is the model of your car? Such as a Camry or Civic."
+                        "value": "What type of {make} do you own. Something like a Honda Civic or Toyota Camry?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "What is the model name of your {make} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "What is the model of your car. Such as a Camry, or Civic?"
                     }
                 ]
             },
@@ -488,7 +565,80 @@
                 "variations": [
                     {
                         "type": "PlainText",
+                        "value": "What model year is your {make} {model} ?"
+                    },
+                    {
+                        "type": "PlainText",
                         "value": "What is the model year of your car?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.1094483946947.1426105464737",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "You want to go to {places} ?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Intent.820838673861",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "You want to go to {places} in {toCity} , {toState} ?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.439339772331.438305179558",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "You would like to go to {places} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, you would like to go to {places} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "I heard you want to go to {places} , is that correct?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.1326298737306.136510581693",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "You would like to go to {toCity} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, you want to go to {toCity} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "I heard {toCity} , is that correct?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.1326298737306.123850564944",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "You would like to go to {toState} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, you want to go to {toState} ?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "I heard {toState} , is that correct?"
                     }
                 ]
             }
