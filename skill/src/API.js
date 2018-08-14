@@ -123,7 +123,7 @@ function httpsGet_Matrix(start_lat, start_long, lat, long, callback) {
               callback([null, distancevalue, distancetext, durationvalue, durationtext]);  //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
             }
             catch(error) {
-              console.error("There was a problem with the api call");
+              console.error("There was a problem with the api call Matrix");
               callback([2, 0, "", 0, ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
             }
         });
@@ -294,7 +294,7 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
           callback([null, lat, long, rate, name])  //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
         }
         catch(error) {
-          console.error("There was a problem with the api call");
+          console.error("There was a problem with the api call googlePlace");
           callback([2, 0, 0, "", ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
         }
       });
@@ -314,42 +314,32 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
 }
 
 //Posts the Coordinates to a database
-function httpsPost_Cooridinates(deviceId, lat, long) {
-    post_data = {
+function httpsPut_Cooridinates(deviceId, lat, long ) {
+    put_data = {
       "lat" : lat,
       "long" : long
     }
 
-    var post_options = {
+    var put_options = {
         host:  'mapout-mockdb-4ead8.firebaseio.com',
         port: '443',
-        path: `/Coordinates/${deviceId}/.json`,
-        method: 'POST',
+        path: `/${deviceId}/Coordinates/.json`,
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(JSON.stringify(post_data))
+            'Content-Length': Buffer.byteLength(JSON.stringify(put_data))
         }
     };
 
-      var post_req = https.request(post_options, res => {
-          res.setEncoding('utf8');
-          var returnData = "";
-          res.on('data', chunk =>  {
-              returnData += chunk;
-          });
-          res.on('end', () => {
-              // this particular API returns a JSON structure:
-              // returnData: {"usstate":"New Jersey","population":9000000}
-              console.log(returnData)
-              var name = JSON.parse(returnData).name;
-          });
+      var put_req = https.request(put_options, res => {
       });
 
-      post_req.on('error', function(err) {
+      put_req.on('error', function(err) {
       });
 
-      post_req.write(JSON.stringify(post_data));
-      post_req.end();
+      put_req.write(JSON.stringify(put_data));
+      console.log("Should have written")
+      put_req.end();
 }
 
-module.exports = { GetCurrentAddress, httpsGet_Geocode, httpsGet_Matrix, httpsGetStats, httpsGet_CarTheft, get_price, httpsGetmyGoogleplace, httpsPost_Cooridinates }
+module.exports = { GetCurrentAddress, httpsGet_Geocode, httpsGet_Matrix, httpsGetStats, httpsGet_CarTheft, get_price, httpsGetmyGoogleplace, httpsPut_Cooridinates }
