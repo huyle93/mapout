@@ -149,6 +149,37 @@
                 {
                     "name": "AMAZON.ScrollUpIntent",
                     "samples": []
+                },
+                {
+                    "name": "AddCarInfo",
+                    "slots": [
+                        {
+                            "name": "make",
+                            "type": "make_type",
+                            "samples": [
+                                "{make} {model}",
+                                "{make}"
+                            ]
+                        },
+                        {
+                            "name": "model",
+                            "type": "model_type",
+                            "samples": [
+                                "{model}"
+                            ]
+                        },
+                        {
+                            "name": "year",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "samples": [
+                                "{year}"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "Update Car Info",
+                        "Add Car Info"
+                    ]
                 }
             ],
             "types": [
@@ -450,6 +481,40 @@
                             "prompts": {}
                         }
                     ]
+                },
+                {
+                    "name": "AddCarInfo",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "make",
+                            "type": "make_type",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.441531998386.975599912793"
+                            }
+                        },
+                        {
+                            "name": "model",
+                            "type": "model_type",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.441531998386.898201185259"
+                            }
+                        },
+                        {
+                            "name": "year",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.441531998386.32307817224"
+                            }
+                        }
+                    ]
                 }
             ]
         },
@@ -639,6 +704,45 @@
                     {
                         "type": "PlainText",
                         "value": "I heard {toState} , is that correct?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.441531998386.975599912793",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the name of the make of your car?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "What is the make of your car. Something like Honda or Toyota?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.441531998386.898201185259",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the name of the model of your car?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "What is the model of your car. Something such as a camry or civic?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.441531998386.32307817224",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What year was your car model made?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "What is the model year of your car?"
                     }
                 ]
             }

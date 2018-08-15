@@ -10,11 +10,10 @@ var google_key = process.env.GOOGLE_KEY
 var gas_key = process.env.GAS_KEY
 
 //Gets Address of the device from Amazon
-function GetCurrentAddress(callback) {
+function GetCurrentAddress( deviceId, callback) {
     if(this.event.context.System.user.permissions) {
       const token = this.event.context.System.user.permissions.consentToken;
       const apiEndpoint = this.event.context.System.apiEndpoint;
-      const deviceId = this.event.context.System.device.deviceId;
       const das = new Alexa.services.DeviceAddressService();
 
       das.getFullAddress(deviceId, apiEndpoint, token)
@@ -314,7 +313,7 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
 }
 
 //Posts the Coordinates to a database
-function httpsPut_Cooridinates(deviceId, lat, long ) {
+function httpsPut_Cooridinates(deviceId, lat, long, callback ) {
     put_data = {
       "lat" : lat,
       "long" : long
@@ -340,6 +339,124 @@ function httpsPut_Cooridinates(deviceId, lat, long ) {
       put_req.write(JSON.stringify(put_data));
       console.log("Should have written")
       put_req.end();
+      callback();
 }
 
-module.exports = { GetCurrentAddress, httpsGet_Geocode, httpsGet_Matrix, httpsGetStats, httpsGet_CarTheft, get_price, httpsGetmyGoogleplace, httpsPut_Cooridinates }
+function httpsPut_UserInfo(deviceId, code, state, city ) {
+    put_data = {
+      "Address" : {
+        "Code" : code,
+        "State" : state,
+        "City" : city
+      }
+    }
+
+    var put_options = {
+        host:  'mapout-mockdb-4ead8.firebaseio.com',
+        port: '443',
+        path: `/${deviceId}/UserInfo/.json`,
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(JSON.stringify(put_data))
+        }
+    };
+
+      var put_req = https.request(put_options, res => {
+      });
+
+      put_req.on('error', function(err) {
+      });
+
+      put_req.write(JSON.stringify(put_data));
+      console.log("Should have written")
+      put_req.end();
+}
+
+function httpsPut_CarInfo(deviceId, make, model, year) {
+    put_data = {
+      "Make" : make,
+      "Model" : model,
+      "Year" : year
+    }
+
+    var put_options = {
+        host:  'mapout-mockdb-4ead8.firebaseio.com',
+        port: '443',
+        path: `/${deviceId}/CarInfo/.json`,
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(JSON.stringify(put_data))
+        }
+    };
+
+      var put_req = https.request(put_options, res => {
+      });
+
+      put_req.on('error', function(err) {
+      });
+
+      put_req.write(JSON.stringify(put_data));
+      put_req.end();
+}
+
+function httpsGet_UserName(deviceId, callback) {
+    var get_options = {
+        host:  'mapout-mockdb-4ead8.firebaseio.com',
+        port: '443',
+        path: `/${deviceId}/UserInfo/.json`,
+        method: 'GET'
+    };
+
+    var get_req = https.request(get_options, res => {
+        res.setEncoding('utf8');
+        var returnData = "";
+        res.on('data', chunk =>  {
+            returnData += chunk;
+        });
+        res.on('end', () => {
+            // this particular API returns a JSON structure:
+            // returnData: {"usstate":"New Jersey","population":9000000}
+            //console.log( returnData )
+            var name = JSON.parse(returnData).Name
+            console.log(name);
+            callback([name]);
+        });
+    });
+
+    get_req.end();
+}
+
+function httpsGet_CarInfo(deviceId, callback) {
+    var get_options = {
+        host:  'mapout-mockdb-4ead8.firebaseio.com',
+        port: '443',
+        path: `/${deviceId}/CarInfo/.json`,
+        method: 'GET'
+    };
+
+    var get_req = https.request(get_options, res => {
+        res.setEncoding('utf8');
+        var returnData = "";
+        res.on('data', chunk =>  {
+            returnData += chunk;
+        });
+        res.on('end', () => {
+          try{
+            var make = JSON.parse(returnData).Make
+            var model = JSON.parse(returnData).Model
+            var year = JSON.parse(returnData).Year
+            callback([make, model, year]);
+          }
+          catch(error) {
+            console.error("No info exists yet");
+            callback([0]);
+          }
+        });
+    });
+
+    get_req.end();
+}
+
+module.exports = { GetCurrentAddress, httpsGet_Geocode, httpsGet_Matrix, httpsGetStats, httpsGet_CarTheft, get_price, httpsGetmyGoogleplace, httpsPut_Cooridinates, httpsPut_UserInfo, httpsPut_CarInfo, httpsGet_UserName, httpsGet_CarInfo }

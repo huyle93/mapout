@@ -1,3 +1,5 @@
+var api = require('./API.js');
+
 //To go from full name in slot to abbreviated code for carTheft
 function convertToAbbr(input) {
     var states = [
@@ -121,6 +123,36 @@ function randomPhrase(array) { //picks a random phrase from an array
     return (array[i]);
 }
 
+function getWelcomeMessage( deviceId, callback ){
+  const welcomeOutput = [
+      "Hello. Your trip advisor is here. I know a lot of information. ",
+      `Thank you for using <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. I am your own personal trip advisor. `,
+      `Hi. Welcome to <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. In just a few steps I can help you plan for your trip. `,
+  ]
+
+  const needCarInfoPrompt = [
+    `It appears you don't have any car data stored with us. If you would like to provide us with this to better estimate your trip say, 'Add Car Info', or if you want to just use a default value `,
+    `It appears we don't have any information about your car. Having this information can help us better estimate your trip, say 'Add Car Info' to provide us with information, or if you would rather use a default value `
+  ]
+
+  const endOptions = [
+    "you can start by saying let's plan a trip.",
+    "to begin simply say, let's plan a trip.",
+    "to start, say, let's plan a trip."
+  ]
+
+
+  checkCarInfo( deviceId, (cb) => {
+    var speechOutput = ""
+    speechOutput += randomPhrase(welcomeOutput);
+    if( cb[0] === 0 ){
+      speechOutput += randomPhrase(needCarInfoPrompt)
+    }
+    speechOutput += randomPhrase(endOptions);
+    callback([speechOutput])
+  })
+}
+
 // Gets the final randomized message for the distance, duration, parking, gas, and possibly a theft warning
 function getFinalMessage( address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar){
   var distanceAndDuration_response = [
@@ -162,4 +194,30 @@ function getFinalMessage( address, parking_name, parking_rating, durationtext, d
   return speechOutput;
 }
 
-module.exports = { convertToAbbr, checkErrors, getMiles, randomPhrase, getFinalMessage }
+function checkCarInfo(deviceId, cb){
+  console.log("In CarInfo")
+  var make, model, year;
+  api.httpsGet_CarInfo(deviceId, (car) => {
+    if( car[0] === 0)
+    {
+      console.log("Should be here")
+      cb([0]);
+    }
+    else {
+      console.log("Should be here innn");
+      make = car[0];
+      model = car[1];
+      year = car[2];
+      console.log( "Make: " + make + " Model: " + model + " Year: " + year)
+      if( make == undefined || model == undefined || year == undefined )
+      {
+        cb([0]);
+      }
+      else {
+        cb([1]);
+      }
+    }
+  })
+}
+
+module.exports = { convertToAbbr, checkErrors, getMiles, randomPhrase, getFinalMessage, checkCarInfo, getWelcomeMessage }

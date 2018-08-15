@@ -13,13 +13,6 @@ var helper = require('./helper_funcs.js')
 let speechOutput;
 let reprompt;
 
-//A couple of welcome prompts to be chosen randomly at the start of the program
-const welcomeOutput = [
-    "Hello. Your trip advisor is here. I know a lot of information. You can start by saying let's plan a trip.",
-    `Thank you for using <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. I am your own personal trip advisor. To begin simply say, let's plan a trip.`,
-    `Hi. Welcome to <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. In just a few steps I can help you plan for your trip. To start, say, let's plan a trip.`,
-  ]
-
 //If a reprompt is required this will be said
 const welcomeReprompt = "Let me know where you'd like to go or when you'd like to go on your trip";
 
@@ -54,95 +47,125 @@ const APP_ID = undefined; // TODO replace with your app ID (OPTIONAL).
 var myCoordinates = [] //The lat and long of the user will be stored here and used to get information
 const handlers = {
     'LaunchRequest': function () {  //Welcomes the user and asks for them to prompt the PlanMyTrip intent
-      var speechOutput = helper.randomPhrase(welcomeOutput);
-      this.response.speak(speechOutput).listen(welcomeReprompt);
-      this.emit(':responseReady');
+      var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
+      var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
+      var speechOutput = helper.getWelcomeMessage( short_deviceId, (cb) => {
+        this.response.speak(cb[0]).listen(welcomeReprompt);
+        this.emit(':responseReady');
+      })
     },
     'PlanMyTrip': function () {
-
-        postData.call(this);
+        var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
+        var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
+        postData.call(this, deviceId);
 
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
 
-        //compose speechOutput that simply reads all the collected slot values
-        var speechOutput = helper.randomPhrase(tripIntro);
-
         //activity is optional so we'll add it to the output
         //only when we have a valid activity
         var travelMode = isSlotValid(this.event.request, "travelMode");
-        if (travelMode) {
-            speechOutput += travelMode;
-        } else {
-            speechOutput += "You'll go ";
-        }
-
         //Now let's recap the trip
         //Validate info
         var toState = this.event.request.intent.slots.toState.value;
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
-        var make = "toyota"
-        var model = "camry"
-        var year = 2013
 
         var to_addr = `${address} ${toCity} ${toState}` //The end location as a string to help ensure accuracy
         var state = helper.convertToAbbr(toState); //gets the state they are going to as the state code to be used for the carTheft API
-        speechOutput += `from ${starting_city}, ${starting_state} to ${to_addr}, ${toState} on ${travelDate}` //output for final message
 
-        // Calling API
-        api.httpsGet_Geocode.call(this, to_addr, (geocode) => { //Gets the lat and long of the end location
-          var errors = []; //checks to see if an error occurs and what type so we can give the appropriate message back
-          errors.push(geocode[0]); //The first variable in the callbacks defines if there is a error and if its fatal or not. This gets pushed to an array to be checked later
-          var lat = geocode[1] // int
-          var long = geocode[2] // int
-          api.httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => { //gets the lat, long, rating, and name of the parking we recommend
-            errors.push(place[0])
-            var parking_lat = place[1]
-            var parking_long = place[2]
-            var parking_rating = place[3]
-            var parking_name = place[4]
-            api.httpsGet_Matrix(myCoordinates[0], myCoordinates[1], lat, long, (matrix) => { //gets the estimated time and distance of your trip
-              errors.push(matrix[0])
-              var distancevalue = matrix[1] // int
-              var distancetext = matrix[2]
-              var durationvalue = matrix[3] // int
-              var durationtext = matrix[4]
-              api.httpsGetStats(make, model, year, (stats) => { //gets the mpg of the user car
-                errors.push(stats[0]);
-                var mpg = Number(stats[1]);
-                api.httpsGet_CarTheft("MA", (theft) => { //gets the most commonly stolen car in the state you are traveling to
-                  errors.push(theft[0]);
-                  var theftCarMake = theft[1];
-                  var theftCarModel = theft[2];
-                  var theftCar = `${theftCarMake} ${theftCarModel}` //made a string to be compared with the car you provided with the most commonly stolen car
-                  var myCar = `${make} ${model}`
-                  api.get_price(myCoordinates[0], myCoordinates[1], (price) => { //gets average gas price around the starting location of the user
-                    var gasPrice = price[0];
-                    var distance = helper.getMiles(distancevalue);
-                    var gasCost = Math.ceil((gasPrice * distance) / mpg) //gets estimated gas cost for the trip using the mpg, gas price, and distance
-                    speechOutput += helper.getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar); //gets the randomized final message to be spoken
-                    var checkForErrors = helper.checkErrors( errors ); //checks to see if any errors occur
-                    if(checkForErrors != 0 ) //if no errors just proceed normally
-                    {
-                      if( checkForErrors == 1) //if there is a one that means there is a non-fatal error that can use a default value and still function
+        var speechOutput = helper.randomPhrase(tripIntro);
+        if (travelMode) {
+            speechOutput += travelMode;
+        } else {
+            speechOutput += ` . Okay, you'll go `;
+            speechOutput += `from ${starting_city}, ${starting_state} to ${toState}, ${toState} on ${travelDate}` //output for final message
+        }
+
+        helper.checkCarInfo( short_deviceId, (car) =>
+        {
+          var make = ""
+          var model = ""
+          var year = 0
+          if( car[0] === 0 ){
+            make = "toyota"
+            model = "camry"
+            year = 2013
+          } else{
+            api.httpsGet_CarInfo( short_deviceId, (info) =>{
+              make = info[0]
+              model = info[1]
+              year = info[2]
+            })
+          }
+          api.httpsGet_Geocode.call(this, to_addr, (geocode) => { //Gets the lat and long of the end location
+            var errors = []; //checks to see if an error occurs and what type so we can give the appropriate message back
+            errors.push(geocode[0]); //The first variable in the callbacks defines if there is a error and if its fatal or not. This gets pushed to an array to be checked later
+            var lat = geocode[1] // int
+            var long = geocode[2] // int
+            api.httpsGetmyGoogleplace(lat, long, "distance", "parking", (place) => { //gets the lat, long, rating, and name of the parking we recommend
+              errors.push(place[0])
+              var parking_lat = place[1]
+              var parking_long = place[2]
+              var parking_rating = place[3]
+              var parking_name = place[4]
+              api.httpsGet_Matrix(myCoordinates[0], myCoordinates[1], lat, long, (matrix) => { //gets the estimated time and distance of your trip
+                errors.push(matrix[0])
+                var distancevalue = matrix[1] // int
+                var distancetext = matrix[2]
+                var durationvalue = matrix[3] // int
+                var durationtext = matrix[4]
+                api.httpsGetStats(make, model, year, (stats) => { //gets the mpg of the user car
+                  errors.push(stats[0]);
+                  var mpg = Number(stats[1]);
+                  api.httpsGet_CarTheft("MA", (theft) => { //gets the most commonly stolen car in the state you are traveling to
+                    errors.push(theft[0]);
+                    var theftCarMake = theft[1];
+                    var theftCarModel = theft[2];
+                    var theftCar = `${theftCarMake} ${theftCarModel}` //made a string to be compared with the car you provided with the most commonly stolen car
+                    var myCar = `${make} ${model}`
+                    api.get_price(myCoordinates[0], myCoordinates[1], (price) => { //gets average gas price around the starting location of the user
+                      var gasPrice = price[0];
+                      var distance = helper.getMiles(distancevalue);
+                      var gasCost = Math.ceil((gasPrice * distance) / mpg) //gets estimated gas cost for the trip using the mpg, gas price, and distance
+                      speechOutput += helper.getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar); //gets the randomized final message to be spoken
+                      var checkForErrors = helper.checkErrors( errors ); //checks to see if any errors occur
+                      if(checkForErrors != 0 ) //if no errors just proceed normally
                       {
-                        speechOutput += " Just a heads up. There was a non fatal error that occured. A default value has been placed but should be close to accurate."
+                        if( checkForErrors == 1) //if there is a one that means there is a non-fatal error that can use a default value and still function
+                        {
+                          speechOutput += " Just a heads up. There was a non fatal error that occured. A default value has been placed but should be close to accurate."
+                        }
+                        else if( checkForErrors == 2) //if there is a two there is a fatal error that will not allow for functionality of the skill. Fail gracefully with a message
+                        {
+                          speechOutput = " There was a fatal error occured. We're very sorry! Please try again."
+                        }
                       }
-                      else if( checkForErrors == 2) //if there is a two there is a fatal error that will not allow for functionality of the skill. Fail gracefully with a message
-                      {
-                        speechOutput = " There was a fatal error occured. We're very sorry! Please try again."
-                      }
-                    }
-                    this.response.speak(speechOutput);
-                    this.emit(":responseReady")
+                      this.response.speak(speechOutput);
+                      this.emit(":responseReady")
+                    })
                   })
                 })
               })
             })
           })
-        });
+        })
+    },
+    'AddCarInfo': function () {
+        var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
+        var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
+
+        var filledSlots = delegateSlotCollection.call(this);
+
+        var make = this.event.request.intent.slots.make.value;
+        var model = this.event.request.intent.slots.model.value;
+        var year = this.event.request.intent.slots.year.value;
+
+        api.httpsPut_CarInfo( short_deviceId, make, model, year)
+        var speechOutput = "Awesome! This information will be saved for your future uses of our skill. If you ever want to update the information just say update car info. Now, say lets plan a trip and we can get started."
+        this.response.speak(speechOutput).listen(speechOutput);
+        this.emit(":responseReady")
     },
     'AMAZON.HelpIntent': function () { //If the user needs help to know what this skill is explain.
         speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. You can start by saying, Let's plan a trip";
@@ -219,8 +242,8 @@ function isSlotValid(request, slotName) {
 }
 
 // ======================== Custom functions ======================= //
-function postData(){
-  var getAddr = api.GetCurrentAddress.call( this, (addr_info) => { //get the starting location of the ALexa device
+function postData( deviceId ){
+  var getAddr = api.GetCurrentAddress.call( this, deviceId, (addr_info) => { //get the starting location of the ALexa device
       starting_state = addr_info[0];
       starting_city = addr_info[1];
       countryCode = addr_info[2];
@@ -236,7 +259,8 @@ function postData(){
     myCoordinates = [start_geocode[1],start_geocode[2]]
   })
 
-  var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
-  deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 30); //Just makes it so the path is valid by eliminating the "."
-  api.httpsPut_Cooridinates( deviceId, myCoordinates[0], myCoordinates[1] )//post the cooridinates to be used later
+   var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
+  api.httpsPut_Cooridinates( short_deviceId, myCoordinates[0], myCoordinates[1], (cb) => { //post the cooridinates to be used later
+    api.httpsPut_UserInfo( short_deviceId, postalCode, starting_city, starting_state);
+  })
 }
