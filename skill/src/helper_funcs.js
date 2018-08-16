@@ -1,6 +1,11 @@
 var api = require('./API.js');
 
-//To go from full name in slot to abbreviated code for carTheft
+/**
+ * To go from full name in slot to abbreviated code for carTheft
+ * put two list together, compare and convert them to Abbreviate UpperCase
+ * @param list   => to list out all the state and province, including Canada
+ * @param input
+ */
 function convertToAbbr(input) {
     var states = [
         ['Alabama', 'AL'],
@@ -90,8 +95,11 @@ function convertToAbbr(input) {
     }
   }
 }
-
-//Checks for Errors and whether or not they were fatal or not
+/**
+ * Checks for Errors and whether or not they were fatal or not
+ * Set the flag, to check error
+ * @param {*} arr 
+ */
 function checkErrors( arr ){
   var flag = 0;
 
@@ -110,19 +118,31 @@ function checkErrors( arr ){
 
   return flag;
 }
-
-//Gets distance in miles
+/**
+ * Formula to get the miles
+ * @param {*} i 
+ */
 function getMiles(i) {
     return i * 0.000621371192;
 }
 
-function randomPhrase(array) { //picks a random phrase from an array
-    // the argument is an array [] of words or phrases
+/**
+ * picks a random phrase from an array
+ *  the argument is an array [] of words or phrases
+ * @param {*} array 
+ */
+function randomPhrase(array) { 
     var i = 0;
     i = Math.floor(Math.random() * array.length);
     return (array[i]);
 }
 
+/**
+ * List of all phrase that alexa will speak
+ * Phoneme Alphabet to get the correct speech and improve alexa conversation
+ * @param {*} deviceId 
+ * @param {*} callback 
+ */
 function getWelcomeMessage( deviceId, callback ){
   const welcomeOutput = [
       "Hello. Your trip advisor is here. I know a lot of information. ",
@@ -142,6 +162,10 @@ function getWelcomeMessage( deviceId, callback ){
   ]
 
 
+  /**
+   * Invoke function to check whether user input their car information
+   * to the database.
+   */
   checkCarInfo( deviceId, (cb) => {
     var speechOutput = ""
     speechOutput += randomPhrase(welcomeOutput);
@@ -153,7 +177,20 @@ function getWelcomeMessage( deviceId, callback ){
   })
 }
 
-// Gets the final randomized message for the distance, duration, parking, gas, and possibly a theft warning
+/**
+ * Gets the final randomized message for the distance, duration, parking, gas, and possibly a theft warning
+ * List out all the phrase that alexa will said to get the user wanted information
+ * This will improve alexa conversationa, it would compare pull the information from API to get the 
+ * accurate information for user.
+ * @param {*} address 
+ * @param {*} parking_name 
+ * @param {*} parking_rating 
+ * @param {*} durationtext 
+ * @param {*} distancetext 
+ * @param {*} gasCost 
+ * @param {*} myCar 
+ * @param {*} theftCar 
+ */
 function getFinalMessage( address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar){
   var distanceAndDuration_response = [
     `. We anticipate this trip will take you ${durationtext} to get there and be a total distance of ${distancetext}`,
@@ -193,7 +230,11 @@ function getFinalMessage( address, parking_name, parking_rating, durationtext, d
 
   return speechOutput;
 }
-
+/**
+ * To check the car information to see whether it is empty or not
+ * @param {*} deviceId => The deviceId for Alexa device
+ * @param {*} cb => Call back?
+ */
 function checkCarInfo(deviceId, cb){
   console.log("In CarInfo")
   var make, model, year;
