@@ -54,14 +54,13 @@ const handlers = {
         this.emit(':responseReady');
       })
     },
+
     'PlanMyTrip': function () {
         var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
         var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
         postData.call(this, deviceId);
-
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
-
         //activity is optional so we'll add it to the output
         //only when we have a valid activity
         var travelMode = isSlotValid(this.event.request, "travelMode");
@@ -71,10 +70,8 @@ const handlers = {
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
-
         var to_addr = `${address} ${toCity} ${toState}` //The end location as a string to help ensure accuracy
         var state = helper.convertToAbbr(toState); //gets the state they are going to as the state code to be used for the carTheft API
-
         var speechOutput = helper.randomPhrase(tripIntro);
         if (travelMode) {
             speechOutput += travelMode;
@@ -82,7 +79,14 @@ const handlers = {
             speechOutput += ` . Okay, you'll go `;
             speechOutput += `from ${starting_city}, ${starting_state} to ${toState}, ${toState} on ${travelDate}` //output for final message
         }
-
+        /**
+         * Logic to check the car information, if user proceed
+         * The skill will use the default info
+         * If not, the alexa will pull the info from the DB
+         * @param make
+         * @param model
+         * @param year
+         */
         helper.checkCarInfo( short_deviceId, (car) =>
         {
           var make = ""
@@ -99,6 +103,10 @@ const handlers = {
               year = info[2]
             })
           }
+          /**
+           * Calling each API from an external javascript file
+           * @param api
+           */
           api.httpsGet_Geocode.call(this, to_addr, (geocode) => { //Gets the lat and long of the end location
             var errors = []; //checks to see if an error occurs and what type so we can give the appropriate message back
             errors.push(geocode[0]); //The first variable in the callbacks defines if there is a error and if its fatal or not. This gets pushed to an array to be checked later
@@ -152,6 +160,7 @@ const handlers = {
           })
         })
     },
+
     'AddCarInfo': function () {
         var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
         var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
@@ -242,6 +251,14 @@ function isSlotValid(request, slotName) {
 }
 
 // ======================== Custom functions ======================= //
+/** 
+ * Get the Device Id of user, get user starting address then put it into a variable
+ * Then call an function from an external javascript file to get the coordinate. 
+ * The put the information up to the database using the put method.
+ * 
+ * @devideId  get the deviceId from the external function
+ * 
+*/
 function postData( deviceId ){
   var getAddr = api.GetCurrentAddress.call( this, deviceId, (addr_info) => { //get the starting location of the ALexa device
       starting_state = addr_info[0];

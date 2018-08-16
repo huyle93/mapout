@@ -204,7 +204,7 @@ function checkCarInfo(deviceId, cb){
       cb([0]);
     }
     else {
-      console.log("Should be here innn");
+      console.log("Should be here in");
       make = car[0];
       model = car[1];
       year = car[2];
