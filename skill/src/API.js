@@ -2,18 +2,40 @@ var https = require('https');
 require('dotenv').load();
 const Alexa = require('alexa-sdk');
 
-// API KEYS
+////////////////////////////////////////////////////////////////////////////////
+//    All the API call functions are stored here.
+//    -GetCurrentAddress: Gets Address of the device from Amazon
+//    -httpsGet_Geocode: Gets the latitude and longitude given a place
+//    -httpsGet_Matrix: Gets the estimated time and distance of your trip
+//    -httpsGetStats: Gets the mpg of the user car
+//    -httpsGet_CarTheft: Gets the most commonly stolen car in the state you are traveling to
+//    -get_price: Gets average gas price around the starting location of the user
+//    -httpsGetmyGoogleplace: Gets the lat, long, rating, and name of the closest parking to a location
+//    -httpsPut_Cooridinates: Posts the Coordinates to our database
+//    -httpsPut_UserInfo: Posts info such as first name of user to personalize their experience to our database
+//    -httpsPut_CarInfo: Posts the make, model, and year of the users car to use to get the mpg to our database
+//    -httpsGet_UserName: Gets the name of the user to personalize their welcome message from our database
+//    -httpsGet_CarInfo: Gets the make, model and year from our database
+////////////////////////////////////////////////////////////////////////////////
+
+
+// API KEYS hidden by env file
 var matrix_key = process.env.MATRIX_KEY
 var shine_key = process.env.SHINE_KEY
 var googleplace_key = process.env.GOOGLEPLACE_KEY
 var google_key = process.env.GOOGLE_KEY
 var gas_key = process.env.GAS_KEY
 
-//Gets Address of the device from Amazon
+/**
+ * Gets Address of the device from Amazon
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function GetCurrentAddress( deviceId, callback) {
+    //Checks to see if we have location permissions and if not requests them from the user.
     if(this.event.context.System.user.permissions) {
-      const token = this.event.context.System.user.permissions.consentToken;
-      const apiEndpoint = this.event.context.System.apiEndpoint;
+      const token = this.event.context.System.user.permissions.consentToken; //the actual token to say we may have permission
+      const apiEndpoint = this.event.context.System.apiEndpoint; //Unique endpoint of the API
       const das = new Alexa.services.DeviceAddressService();
 
       das.getFullAddress(deviceId, apiEndpoint, token)
@@ -42,15 +64,18 @@ function GetCurrentAddress( deviceId, callback) {
   }
 }
 
-// Geocode
-function httpsGet_Geocode(myData, callback) {
-  // Update these options with the details of the web service you would like to call
+/**
+ * Gets the latitude and longitude given a place
+ * @param {string} address => The adress or place we will find the geocode for
+ * @param {function} callback => callback to return the data we got from the api
+ */
+function httpsGet_Geocode(address, callback) {
   var hold = this;
 
   var options = {
     host: 'maps.googleapis.com',
     port: 443,
-    path: `/maps/api/geocode/json?address=${encodeURIComponent(myData)}&key=` + google_key,
+    path: `/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=` + google_key,
     method: 'GET',
     timeout: 100000
   };
@@ -92,14 +117,20 @@ function httpsGet_Geocode(myData, callback) {
   }
 }
 
-//Matrix
-function httpsGet_Matrix(start_lat, start_long, lat, long, callback) {
-  // Update these options with the details of the web service you would like to call
+/**
+ * Gets the estimated time and distance of your trip
+ * @param {long} start_lat => The latitude that the trip starts at
+ * @param {long} start_long => The longitude that the trip starts at
+ * @param {long} end_lat => The latitude that the trip ends at
+ * @param {long} end_long => The longitude that the trip ends at
+ * @param {function} callback => callback to return the data we got from the api
+ */
+function httpsGet_Matrix(start_lat, start_long, end_lat, end_long, callback) {
   var hold = this
   var options = {
     host: 'maps.googleapis.com',
     port: 443,
-    path: `/maps/api/distancematrix/json?units=imperial&origins=${start_lat},${start_long}&destinations=${lat}%2C${long}&key=` + matrix_key,
+    path: `/maps/api/distancematrix/json?units=imperial&origins=${start_lat},${start_long}&destinations=${end_lat}%2C${end_long}&key=` + matrix_key,
     method: 'GET',
     timeout: 100000
   };
@@ -141,13 +172,25 @@ function httpsGet_Matrix(start_lat, start_long, lat, long, callback) {
   }
 }
 
-// Shine Car Stats
+/**
+ * Gets the mpg of the user car
+ * @param {string} make => The make of the users car
+ * @param {string} model => The model of the users car
+ * @param {int} year => The model year of the users car
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function httpsGetStats(make, model, year, callback){
   var hold = this
 
+  var year_over_2010 = year //Shine API only has data for 2010 and above
+  if(year < 2010 ) //If the model year is less than 2010 set it to be 2010 to get most accurate data available
+  {
+    year_over_2010 = 2010
+  }
+
   var stats_options = {
     host: 'apis.solarialabs.com',
-    path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year + '&full-data=true&apikey=' + shine_key,
+    path: '/shine/v1/vehicle-stats/specs?make=' + make + '&model=' + model + '&year=' + year_over_2010 + '&full-data=true&apikey=' + shine_key,
     method: 'GET',
     timeout: 100000
   }
@@ -188,7 +231,11 @@ function httpsGetStats(make, model, year, callback){
   }
 }
 
-// Shine Car Theft
+/**
+ * Gets the most commonly stolen car in the state you are traveling to
+ * @param {string} state => The state that will be traveled to
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function httpsGet_CarTheft(state, callback) {
   // Update these options with the details of the web service you would like to call
   // this will return top 3rd that got stolen
@@ -236,7 +283,12 @@ function httpsGet_CarTheft(state, callback) {
   }
 }
 
-// MyGasFeed gets average price of gas around the starting location
+/**
+ * MyGasFeed gets average price of gas around the starting location
+ * @param {long} lat => The latitude the trip will start at
+ * @param {long} long => The longitude the trip will start at
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function get_price(lat, long, callback) {
     let request = require('request')
     let options = {
@@ -264,7 +316,14 @@ function get_price(lat, long, callback) {
     })
 }
 
-// GooglePlace
+/**
+ * Gets the lat, long, rating, and name of the closest parking to a location
+ * @param {long} lat => The latitude the trip will end at
+ * @param {long} long => The longitude the trip will end at
+ * @param {string} rankby => Tells what order to display the results in (distance or prominence)
+ * @param {string} types => The api can find many different types of places. For our skill this will find parking
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
   var hold = this
 
@@ -312,7 +371,13 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
   }
 }
 
-//Posts the Coordinates to a database
+/**
+ * Posts the Coordinates to our database
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {long} lat => The latitude the trip will start at. This will be posted to our database
+ * @param {long} long => The longitude the trip will start at. This will be posted to our database
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function httpsPut_Cooridinates(deviceId, lat, long, callback ) {
     put_data = {
       "lat" : lat,
@@ -337,11 +402,17 @@ function httpsPut_Cooridinates(deviceId, lat, long, callback ) {
       });
 
       put_req.write(JSON.stringify(put_data));
-      console.log("Should have written")
       put_req.end();
       callback();
 }
 
+/**
+ * Posts info such as first name of user to personalize their experience to our database
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {int} code => the postal code of the user. This will be posted to our database
+ * @param {string} state => the starting state of the user. This will be posted to our database
+ * @param {string} city => the starting city of the user. This will be posted to our database
+ */
 function httpsPut_UserInfo(deviceId, code, state, city ) {
     put_data = {
       "Address" : {
@@ -373,6 +444,13 @@ function httpsPut_UserInfo(deviceId, code, state, city ) {
       put_req.end();
 }
 
+/**
+ * Posts the make, model, and year of the users car to use to get the mpg to our database
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {string} make => the make of the users car. This will be posted to our database
+ * @param {string} model => the model of the users car. This will be posted to our database
+ * @param {int} year => the model year of the users car. This will be posted to our database
+ */
 function httpsPut_CarInfo(deviceId, make, model, year) {
     put_data = {
       "Make" : make,
@@ -401,6 +479,11 @@ function httpsPut_CarInfo(deviceId, make, model, year) {
       put_req.end();
 }
 
+/**
+ * Gets the name of the user to personalize their welcome message from our database
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function httpsGet_UserName(deviceId, callback) {
     var get_options = {
         host:  'mapout-mockdb-4ead8.firebaseio.com',
@@ -428,6 +511,11 @@ function httpsGet_UserName(deviceId, callback) {
     get_req.end();
 }
 
+/**
+ * Gets the make, model and year from our database
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {function} callback => callback to return the data we got from the api
+ */
 function httpsGet_CarInfo(deviceId, callback) {
     var get_options = {
         host:  'mapout-mockdb-4ead8.firebaseio.com',

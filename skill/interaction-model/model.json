@@ -490,27 +490,30 @@
                         {
                             "name": "make",
                             "type": "make_type",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.128877737540.642769642501",
                                 "elicitation": "Elicit.Slot.441531998386.975599912793"
                             }
                         },
                         {
                             "name": "model",
                             "type": "model_type",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.128877737540.43334826788",
                                 "elicitation": "Elicit.Slot.441531998386.898201185259"
                             }
                         },
                         {
                             "name": "year",
                             "type": "AMAZON.FOUR_DIGIT_NUMBER",
-                            "confirmationRequired": false,
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.128877737540.1471955645110",
                                 "elicitation": "Elicit.Slot.441531998386.32307817224"
                             }
                         }
@@ -712,6 +715,10 @@
                 "variations": [
                     {
                         "type": "PlainText",
+                        "value": "What is the brand name of your car. Something like Chevy, or Ford?"
+                    },
+                    {
+                        "type": "PlainText",
                         "value": "What is the name of the make of your car?"
                     },
                     {
@@ -723,6 +730,10 @@
             {
                 "id": "Elicit.Slot.441531998386.898201185259",
                 "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the model name of your {make} ?"
+                    },
                     {
                         "type": "PlainText",
                         "value": "What is the name of the model of your car?"
@@ -743,6 +754,33 @@
                     {
                         "type": "PlainText",
                         "value": "What is the model year of your car?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.128877737540.642769642501",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "I heard {make} . Is this correct?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.128877737540.43334826788",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "I heard {model} . Is this correct?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.128877737540.1471955645110",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "I heard {year} . Is this correct?"
                     }
                 ]
             }

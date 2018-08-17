@@ -2,14 +2,11 @@
 /* eslint-disable  func-names */
 /* eslint quote-props: ["error", "consistent"]*/
 const Alexa = require('alexa-sdk');
-var async = require('asyncawait/async');
-var await = require('asyncawait/await');
 var api = require('./API.js');
 var helper = require('./helper_funcs.js')
 
 // 1. Text strings =====================================================================================================
 //    Modify these strings and messages to change the behavior of your Lambda function
-
 let speechOutput;
 let reprompt;
 
@@ -32,11 +29,11 @@ const cancelResponse = [
 ]
 
 //Variables that will be used to store the "current location" of the user
-var starting_state = "NH";
-var starting_city = "Durham";
-var countryCode = "US";
-var postalCode = "03824";
-var addressLine1 = "UNH";
+var starting_state = "NH"; //default value to make api accept it
+var starting_city = "Durham"; //default value to make api accept it
+var countryCode = "US"; //default value to make api accept it
+var postalCode = "03824"; //default value to make api accept it
+var addressLine1 = "UNH"; //default value to make api accept it
 var addressLine2 = "";
 var addressLine3 = "";
 var districtOrCounty =  "";
@@ -54,13 +51,14 @@ const handlers = {
         this.emit(':responseReady');
       })
     },
-
     'PlanMyTrip': function () {
         var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
         var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
         postData.call(this, deviceId);
+
         //delegate to Alexa to collect all the required slot values
         var filledSlots = delegateSlotCollection.call(this);
+
         //activity is optional so we'll add it to the output
         //only when we have a valid activity
         var travelMode = isSlotValid(this.event.request, "travelMode");
@@ -70,8 +68,10 @@ const handlers = {
         var toCity = this.event.request.intent.slots.toCity.value;
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
+
         var to_addr = `${address} ${toCity} ${toState}` //The end location as a string to help ensure accuracy
         var state = helper.convertToAbbr(toState); //gets the state they are going to as the state code to be used for the carTheft API
+
         var speechOutput = helper.randomPhrase(tripIntro);
         if (travelMode) {
             speechOutput += travelMode;
@@ -79,6 +79,7 @@ const handlers = {
             speechOutput += ` . Okay, you'll go `;
             speechOutput += `from ${starting_city}, ${starting_state} to ${toState}, ${toState} on ${travelDate}` //output for final message
         }
+
         /**
          * Logic to check the car information, if user proceed
          * The skill will use the default info
@@ -160,24 +161,26 @@ const handlers = {
           })
         })
     },
-
     'AddCarInfo': function () {
         var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
         var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
 
+        //fill the slots
         var filledSlots = delegateSlotCollection.call(this);
 
         var make = this.event.request.intent.slots.make.value;
         var model = this.event.request.intent.slots.model.value;
         var year = this.event.request.intent.slots.year.value;
 
+        //Put the info we have just gotton onto the database
         api.httpsPut_CarInfo( short_deviceId, make, model, year)
+
         var speechOutput = "Awesome! This information will be saved for your future uses of our skill. If you ever want to update the information just say update car info. Now, say lets plan a trip and we can get started."
         this.response.speak(speechOutput).listen(speechOutput);
         this.emit(":responseReady")
     },
     'AMAZON.HelpIntent': function () { //If the user needs help to know what this skill is explain.
-        speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. You can start by saying, Let's plan a trip";
+        speechOutput = "I am your own personal trip advisor. I can help plan a trip by giving you estimations about the cost, distance and time. If you would like to update your car info say, Update Car Info or you can start by saying, Let's plan a trip";
         reprompt = "Say let's plan a trip when you are ready to begin.";
         this.response.speak(speechOutput).listen(reprompt);
         this.emit(':responseReady');
@@ -251,13 +254,13 @@ function isSlotValid(request, slotName) {
 }
 
 // ======================== Custom functions ======================= //
-/** 
+/**
  * Get the Device Id of user, get user starting address then put it into a variable
- * Then call an function from an external javascript file to get the coordinate. 
+ * Then call an function from an external javascript file to get the coordinate.
  * The put the information up to the database using the put method.
- * 
- * @devideId  get the deviceId from the external function
- * 
+ *
+ * @param {string} devideId  get the deviceId from the external function
+ *
 */
 function postData( deviceId ){
   var getAddr = api.GetCurrentAddress.call( this, deviceId, (addr_info) => { //get the starting location of the ALexa device
