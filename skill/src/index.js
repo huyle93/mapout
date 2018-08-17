@@ -69,15 +69,15 @@ const handlers = {
         var travelDate = this.event.request.intent.slots.travelDate.value;
         var address = this.event.request.intent.slots.places.value;
 
+        api.httpsPut_ToState( short_deviceId, toState )
         var to_addr = `${address} ${toCity} ${toState}` //The end location as a string to help ensure accuracy
-        var state = helper.convertToAbbr(toState); //gets the state they are going to as the state code to be used for the carTheft API
 
         var speechOutput = helper.randomPhrase(tripIntro);
         if (travelMode) {
             speechOutput += travelMode;
         } else {
-            speechOutput += ` . Okay, you'll go `;
-            speechOutput += `from ${starting_city}, ${starting_state} to ${toState}, ${toState} on ${travelDate}` //output for final message
+            speechOutput += ` . You'll go `;
+            speechOutput += `from ${starting_city}, ${starting_state} to ${toCity}, ${toState} on ${travelDate}` //output for final message
         }
 
         /**
@@ -128,31 +128,35 @@ const handlers = {
                 api.httpsGetStats(make, model, year, (stats) => { //gets the mpg of the user car
                   errors.push(stats[0]);
                   var mpg = Number(stats[1]);
-                  api.httpsGet_CarTheft("MA", (theft) => { //gets the most commonly stolen car in the state you are traveling to
-                    errors.push(theft[0]);
-                    var theftCarMake = theft[1];
-                    var theftCarModel = theft[2];
-                    var theftCar = `${theftCarMake} ${theftCarModel}` //made a string to be compared with the car you provided with the most commonly stolen car
-                    var myCar = `${make} ${model}`
-                    api.get_price(myCoordinates[0], myCoordinates[1], (price) => { //gets average gas price around the starting location of the user
-                      var gasPrice = price[0];
-                      var distance = helper.getMiles(distancevalue);
-                      var gasCost = Math.ceil((gasPrice * distance) / mpg) //gets estimated gas cost for the trip using the mpg, gas price, and distance
-                      speechOutput += helper.getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar); //gets the randomized final message to be spoken
-                      var checkForErrors = helper.checkErrors( errors ); //checks to see if any errors occur
-                      if(checkForErrors != 0 ) //if no errors just proceed normally
-                      {
-                        if( checkForErrors == 1) //if there is a one that means there is a non-fatal error that can use a default value and still function
+                  var state;
+                  api.httpsGet_ToState( short_deviceId, (cb) => {
+                    state = helper.convertToAbbr(cb[0]);
+                    api.httpsGet_CarTheft(state, (theft) => { //gets the most commonly stolen car in the state you are traveling to
+                      errors.push(theft[0]);
+                      var theftCarMake = theft[1];
+                      var theftCarModel = theft[2];
+                      var theftCar = `${theftCarMake} ${theftCarModel}` //made a string to be compared with the car you provided with the most commonly stolen car
+                      var myCar = `${make} ${model}`
+                      api.get_price(myCoordinates[0], myCoordinates[1], (price) => { //gets average gas price around the starting location of the user
+                        var gasPrice = price[0];
+                        var distance = helper.getMiles(distancevalue);
+                        var gasCost = Math.ceil((gasPrice * distance) / mpg) //gets estimated gas cost for the trip using the mpg, gas price, and distance
+                        speechOutput += helper.getFinalMessage(address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar); //gets the randomized final message to be spoken
+                        var checkForErrors = helper.checkErrors( errors ); //checks to see if any errors occur
+                        if(checkForErrors != 0 ) //if no errors just proceed normally
                         {
-                          speechOutput += " Just a heads up. There was a non fatal error that occured. A default value has been placed but should be close to accurate."
+                          if( checkForErrors == 1) //if there is a one that means there is a non-fatal error that can use a default value and still function
+                          {
+                            speechOutput += " Just a heads up. There was a non fatal error that occured. A default value has been placed but should be close to accurate."
+                          }
+                          else if( checkForErrors == 2) //if there is a two there is a fatal error that will not allow for functionality of the skill. Fail gracefully with a message
+                          {
+                            speechOutput = " There was a fatal error occured. We're very sorry! Please try again."
+                          }
                         }
-                        else if( checkForErrors == 2) //if there is a two there is a fatal error that will not allow for functionality of the skill. Fail gracefully with a message
-                        {
-                          speechOutput = " There was a fatal error occured. We're very sorry! Please try again."
-                        }
-                      }
-                      this.response.speak(speechOutput);
-                      this.emit(":responseReady")
+                        this.response.speak(speechOutput);
+                        this.emit(":responseReady")
+                      })
                     })
                   })
                 })
@@ -175,7 +179,7 @@ const handlers = {
         //Put the info we have just gotton onto the database
         api.httpsPut_CarInfo( short_deviceId, make, model, year)
 
-        var speechOutput = "Awesome! This information will be saved for your future uses of our skill. If you ever want to update the information just say update car info. Now, say lets plan a trip and we can get started."
+        var speechOutput = "Awesome! This information will be saved for your future use of our skill. If you ever want to update the information just say update car info. Now, say lets plan a trip and we can get started."
         this.response.speak(speechOutput).listen(speechOutput);
         this.emit(":responseReady")
     },

@@ -158,14 +158,15 @@ function randomPhrase(array) {
  */
 function getWelcomeMessage( deviceId, callback ){
   const welcomeOutput = [
-      "Hello. Your trip advisor is here. I know a lot of information. ",
+      `Hello there. Your trip advisor <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme> is here. I can help give you estimations about your trip. `,
       `Hello. Thank you for using <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. I am your own personal trip advisor. `,
       `Hi. Welcome to <phoneme alphabet="ipa" ph="mæp.aʊt">Mapout</phoneme>. In just a few steps I can help you plan for your trip. `,
   ]
 
   const needCarInfoPrompt = [
     `It appears you don't have any car data stored with us. If you would like to provide us with this to better estimate your trip say, 'Add Car Info', or if you want to just use a default value `,
-    `It appears we don't have any information about your car. Having this information can help us better estimate your trip, say 'Add Car Info' to provide us with information, or if you would rather use a default value `
+    `It appears we don't have any information about your car yet. Having this data can help us better estimate your trip, say 'Add Car Info' to provide us with information, or if you would rather use a default value `,
+    `It looks like we don't have any details about your car yet. Providing us with this information allows us to better estimate the trip you will be taking. Say 'Add Car Info' if you would like add that or if you rather a default value be used `
   ]
 
   const endOptions = [

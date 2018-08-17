@@ -480,6 +480,37 @@ function httpsPut_CarInfo(deviceId, make, model, year) {
 }
 
 /**
+ * Posts the make, model, and year of the users car to use to get the mpg to our database
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {string} state => the state the user is traveling to today. This will be posted to our database
+ */
+function httpsPut_ToState(deviceId, state) {
+    put_data = {
+      "State" : state,
+    }
+
+    var put_options = {
+        host:  'mapout-mockdb-4ead8.firebaseio.com',
+        port: '443',
+        path: `/${deviceId}/ToState/.json`,
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(JSON.stringify(put_data))
+        }
+    };
+
+      var put_req = https.request(put_options, res => {
+      });
+
+      put_req.on('error', function(err) {
+      });
+
+      put_req.write(JSON.stringify(put_data));
+      put_req.end();
+}
+
+/**
  * Gets the name of the user to personalize their welcome message from our database
  * @param {string} deviceId => The deviceId for Alexa device
  * @param {function} callback => callback to return the data we got from the api
@@ -547,4 +578,43 @@ function httpsGet_CarInfo(deviceId, callback) {
     get_req.end();
 }
 
-module.exports = { GetCurrentAddress, httpsGet_Geocode, httpsGet_Matrix, httpsGetStats, httpsGet_CarTheft, get_price, httpsGetmyGoogleplace, httpsPut_Cooridinates, httpsPut_UserInfo, httpsPut_CarInfo, httpsGet_UserName, httpsGet_CarInfo }
+/**
+ * Gets the name of the user to personalize their welcome message from our database
+ * @param {string} deviceId => The deviceId for Alexa device
+ * @param {function} callback => callback to return the data we got from the api
+ */
+function httpsGet_ToState(deviceId, callback) {
+    var get_options = {
+        host:  'mapout-mockdb-4ead8.firebaseio.com',
+        port: '443',
+        path: `/${deviceId}/ToState/.json`,
+        method: 'GET'
+    };
+
+    var get_req = https.request(get_options, res => {
+        res.setEncoding('utf8');
+        var returnData = "";
+        res.on('data', chunk =>  {
+            returnData += chunk;
+        });
+        res.on('end', () => {
+            try{
+              var state = JSON.parse(returnData).State
+              callback([state]);
+            }
+            catch(error) {
+              console.error("There was a problem with the api call googlePlace");
+              callback(["ERROR"]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
+            }
+        });
+    });
+
+    get_req.on('error', function(err) {
+       /*hold.response.speak('I\'m sorry. Something went wrong. In httpsGetmyGoogleplace');
+       hold.emit(':responseReady');*/
+    });
+
+    get_req.end();
+}
+
+module.exports = { GetCurrentAddress, httpsGet_Geocode, httpsGet_Matrix, httpsGetStats, httpsGet_CarTheft, get_price, httpsGetmyGoogleplace, httpsPut_Cooridinates, httpsPut_UserInfo, httpsPut_CarInfo, httpsPut_ToState, httpsGet_UserName, httpsGet_CarInfo, httpsGet_ToState }

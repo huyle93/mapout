@@ -586,15 +586,15 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Which day are you planning on making this trip to {places} ?"
+                        "value": "Okay, I have one last question, then please give me a few moments to process the data. Which day are you planning on making this trip to {places} ?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "What day are you planning this trip for {toCity} ?"
+                        "value": "Okay, I have one last question, then please give me a few moments to process the data. What day are you planning this trip for {toCity} ?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "When will you start this trip to {toCity} ?"
+                        "value": "Okay, I have one last question, then please give me a few moments to process the data. When will you start this trip to {toCity} ?"
                     }
                 ]
             },
@@ -762,6 +762,14 @@
                 "variations": [
                     {
                         "type": "PlainText",
+                        "value": "Your car is a {make} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, your car is a  {make} ?"
+                    },
+                    {
+                        "type": "PlainText",
                         "value": "I heard {make} . Is this correct?"
                     }
                 ]
@@ -771,6 +779,14 @@
                 "variations": [
                     {
                         "type": "PlainText",
+                        "value": "Your {make} is a {model} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, your {make} is a  {model} ?"
+                    },
+                    {
+                        "type": "PlainText",
                         "value": "I heard {model} . Is this correct?"
                     }
                 ]
@@ -778,6 +794,14 @@
             {
                 "id": "Confirm.Slot.128877737540.1471955645110",
                 "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Your {make}  {model}  is a {year} , yes or no?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "To confirm, your {make} {model} is a  {year} ?"
+                    },
                     {
                         "type": "PlainText",
                         "value": "I heard {year} . Is this correct?"
