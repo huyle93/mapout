@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms'
 import { RouterModule, Routes, Router}  from '@angular/router'
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
-import { ServicesComponent } from './services/services.component';
 import { RegisterComponent } from './register/register.component';
 import { MatInputModule, MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule, MatAutocompleteModule} from '@angular/material';
 /* import { MaterialDashboardComponent } from './material-dashboard/material-dashboard.component'; */
@@ -35,7 +34,6 @@ const loginRoutes: Routes = [{
   declarations: [
     AppComponent,
     LoginComponent,
-    ServicesComponent,
     RegisterComponent, 
     UserProfileComponent
     /* MaterialDashboardComponent */,    
