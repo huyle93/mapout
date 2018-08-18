@@ -264,8 +264,8 @@ function httpsGet_CarTheft(state, callback) {
           callback([null, make, model]);  //The first variable in the callbacks defines if there is a error and if its fatal or not. Here there is neither
         }
         catch(error) {
-          console.error("There was a problem with the api call");
-          callback([2, "", ""]); //here is an example of a fatal error signaled with a "2". The other variables are just to fill the callback
+          console.error("There was a non fatal error. Using a default value");
+          callback([1, "", ""]); //here is an example of a non-fatal error signaled with a "1". The other variables are just to fill the callback
         }
       });
     });
@@ -376,9 +376,8 @@ function httpsGetmyGoogleplace(lat, long, rankby, types, callback) {
  * @param {string} deviceId => The deviceId for Alexa device
  * @param {long} lat => The latitude the trip will start at. This will be posted to our database
  * @param {long} long => The longitude the trip will start at. This will be posted to our database
- * @param {function} callback => callback to return the data we got from the api
  */
-function httpsPut_Cooridinates(deviceId, lat, long, callback ) {
+function httpsPut_Cooridinates(deviceId, lat, long ) {
     put_data = {
       "lat" : lat,
       "long" : long

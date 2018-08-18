@@ -45,7 +45,7 @@ var myCoordinates = [] //The lat and long of the user will be stored here and us
 const handlers = {
     'LaunchRequest': function () {  //Welcomes the user and asks for them to prompt the PlanMyTrip intent
       var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
-      var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
+      var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), deviceId.length); //Just makes it so the path is valid by eliminating the "."
       var speechOutput = helper.getWelcomeMessage( short_deviceId, (cb) => {
         this.response.speak(cb[0]).listen(welcomeReprompt);
         this.emit(':responseReady');
@@ -53,7 +53,7 @@ const handlers = {
     },
     'PlanMyTrip': function () {
         var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
-        var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
+        var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), deviceId.length); //Just makes it so the path is valid by eliminating the "."
         postData.call(this, deviceId);
 
         //delegate to Alexa to collect all the required slot values
@@ -167,7 +167,7 @@ const handlers = {
     },
     'AddCarInfo': function () {
         var deviceId = this.event.context.System.device.deviceId; //gets the device ID to use as the users "key" to be posted
-        var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
+        var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), deviceId.length); //Just makes it so the path is valid by eliminating the "."
 
         //fill the slots
         var filledSlots = delegateSlotCollection.call(this);
@@ -283,8 +283,6 @@ function postData( deviceId ){
     myCoordinates = [start_geocode[1],start_geocode[2]]
   })
 
-   var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), 40); //Just makes it so the path is valid by eliminating the "."
-  api.httpsPut_Cooridinates( short_deviceId, myCoordinates[0], myCoordinates[1], (cb) => { //post the cooridinates to be used later
-    api.httpsPut_UserInfo( short_deviceId, postalCode, starting_city, starting_state);
-  })
+  var short_deviceId = deviceId.slice((deviceId.lastIndexOf(".") + 1), deviceId.length); //Just makes it so the path is valid by eliminating the "."
+  api.httpsPut_Cooridinates( short_deviceId, myCoordinates[0], myCoordinates[1] )
 }
