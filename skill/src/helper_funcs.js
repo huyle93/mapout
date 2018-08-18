@@ -14,8 +14,8 @@ var api = require('./API.js');
 /**
  * To go from full name in slot to abbreviated code for carTheft
  * put two list together, compare and convert them to Abbreviate UpperCase
- * @param list   => to list out all the state and province, including Canada
- * @param input
+ * @param {list} list   => to list out all the state and province, including Canada
+ * @param {string} input
  */
 function convertToAbbr(input) {
     var states = [
@@ -110,7 +110,7 @@ function convertToAbbr(input) {
 /**
  * Checks for Errors and whether or not they were fatal or not
  * Set the flag, to check error
- * @param {*} arr
+ * @param {array} arr
  */
 function checkErrors( arr ){
   var flag = 0;
@@ -133,7 +133,7 @@ function checkErrors( arr ){
 
 /**
  * Formula to get the miles
- * @param {*} i
+ * @param {int} i
  */
 function getMiles(i) {
     return i * 0.000621371192;
@@ -142,7 +142,7 @@ function getMiles(i) {
 /**
  * picks a random phrase from an array
  *  the argument is an array [] of words or phrases
- * @param {*} array
+ * @param {array} array
  */
 function randomPhrase(array) {
     var i = 0;
@@ -153,8 +153,8 @@ function randomPhrase(array) {
 /**
  * List of all phrase that alexa will speak
  * Phoneme Alphabet to get the correct speech and improve alexa conversation
- * @param {*} deviceId
- * @param {*} callback
+ * @param {int} deviceId
+ * @param {callback} callback
  */
 function getWelcomeMessage( deviceId, callback ){
   const welcomeOutput = [
@@ -196,14 +196,14 @@ function getWelcomeMessage( deviceId, callback ){
  * List out all the phrase that alexa will said to get the user wanted information
  * This will improve alexa conversationa, it would compare pull the information from API to get the
  * accurate information for user.
- * @param {*} address
- * @param {*} parking_name
- * @param {*} parking_rating
- * @param {*} durationtext
- * @param {*} distancetext
- * @param {*} gasCost
- * @param {*} myCar
- * @param {*} theftCar
+ * @param {string} address
+ * @param {string} parking_name
+ * @param {string} parking_rating
+ * @param {string} durationtext
+ * @param {string} distancetext
+ * @param {int} gasCost
+ * @param {string} myCar
+ * @param {string} theftCar
  */
 function getFinalMessage( address, parking_name, parking_rating, durationtext, distancetext, gasCost, myCar, theftCar){
   const distanceAndDuration_response = [
@@ -248,7 +248,7 @@ function getFinalMessage( address, parking_name, parking_rating, durationtext, d
 /**
  * To check the car information to see whether it is empty or not
  * @param {*} deviceId => The deviceId for Alexa device
- * @param {*} cb => Call back?
+ * @param {callback} cb => Call back?
  */
 function checkCarInfo(deviceId, cb){
   var make, model, year;
