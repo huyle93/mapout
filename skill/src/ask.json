@@ -1,0 +1,121 @@
+{
+	"version": "1.0",
+	"session": {
+		"new": false,
+		"sessionId": "amzn1.echo-api.session.acfb5169-d089-4626-a4a0-5e7048f7012c",
+		"application": {
+			"applicationId": "amzn1.ask.skill.082194d5-68af-4623-8170-74305f32fe70"
+		},
+		"user": {
+			"userId": "amzn1.ask.account.AHACLYL2RSZKIKBZN4LEUFNXELBD2OONBN56BW4E7MW3C2736GRZ5GWF547LNZPKVTMQXBGOW6I3UQMVU3MTWEKMV7JJXVNZRGS5SMQPU4CLBEQOSCYJELCYKNAUKRWKAB5RW7EAJI3ZWXIMB2TMPENF7YYEQTA65TEGA2BBR6CB4KNT4Y5KXNYSTYAXLJPINW7JVPSL2KGQHPA"
+		}
+	},
+	"context": {
+		"System": {
+			"application": {
+				"applicationId": "amzn1.ask.skill.082194d5-68af-4623-8170-74305f32fe70"
+			},
+			"user": {
+				"userId": "amzn1.ask.account.AHACLYL2RSZKIKBZN4LEUFNXELBD2OONBN56BW4E7MW3C2736GRZ5GWF547LNZPKVTMQXBGOW6I3UQMVU3MTWEKMV7JJXVNZRGS5SMQPU4CLBEQOSCYJELCYKNAUKRWKAB5RW7EAJI3ZWXIMB2TMPENF7YYEQTA65TEGA2BBR6CB4KNT4Y5KXNYSTYAXLJPINW7JVPSL2KGQHPA"
+			},
+			"device": {
+				"deviceId": "amzn1.ask.device.AF6X3H3LVN7ZFEQSJYP34GUMY6UCAUFMWBWRKBNJEMHQMGEKUY3FQMY2IQ22YEDO23TEECXLZCIMJ4AAG2DYT2QYXKMPSTL5RH5WNDCHKJHB6OMJQ6OJIC22MGGJ4BQ3EOWJ43M3OKAWYBKXFD5RSCTOEMSQ",
+				"supportedInterfaces": {}
+			},
+			"apiEndpoint": "https://api.amazonalexa.com",
+			"apiAccessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ.eyJhdWQiOiJodHRwczovL2FwaS5hbWF6b25hbGV4YS5jb20iLCJpc3MiOiJBbGV4YVNraWxsS2l0Iiwic3ViIjoiYW16bjEuYXNrLnNraWxsLjA4MjE5NGQ1LTY4YWYtNDYyMy04MTcwLTc0MzA1ZjMyZmU3MCIsImV4cCI6MTUyOTk1MTM5MywiaWF0IjoxNTI5OTQ3NzkzLCJuYmYiOjE1Mjk5NDc3OTMsInByaXZhdGVDbGFpbXMiOnsiY29uc2VudFRva2VuIjpudWxsLCJkZXZpY2VJZCI6ImFtem4xLmFzay5kZXZpY2UuQUY2WDNIM0xWTjdaRkVRU0pZUDM0R1VNWTZVQ0FVRk1XQldSS0JOSkVNSFFNR0VLVVkzRlFNWTJJUTIyWUVETzIzVEVFQ1hMWkNJTUo0QUFHMkRZVDJRWVhLTVBTVEw1Ukg1V05EQ0hLSkhCNk9NSlE2T0pJQzIyTUdHSjRCUTNFT1dKNDNNM09LQVdZQktYRkQ1UlNDVE9FTVNRIiwidXNlcklkIjoiYW16bjEuYXNrLmFjY291bnQuQUhBQ0xZTDJSU1pLSUtCWk40TEVVRk5YRUxCRDJPT05CTjU2Qlc0RTdNVzNDMjczNkdSWjVHV0Y1NDdMTlpQS1ZUTVFYQkdPVzZJM1VRTVZVM01UV0VLTVY3SkpYVk5aUkdTNVNNUVBVNENMQkVRT1NDWUpFTENZS05BVUtSV0tBQjVSVzdFQUpJM1pXWElNQjJUTVBFTkY3WVlFUVRBNjVURUdBMkJCUjZDQjRLTlQ0WTVLWE5ZU1RZQVhMSlBJTlc3SlZQU0wyS0dRSFBBIn19.Tjqj1Gn-uHqVx6omLpTpZRIQB5rvp7I3EC0VHX9Bd37qVMh-Oj_SsvpYq7qtUpbOrDL3KKzdSswyF87NQ_hMBM_EoU4dUS0Izme94oCmRXS62NKZarIULRznipSDkUaEJxcEzLAtRj03zl1AsDhiZ20-FgwMlnfeuTIlnY59utFCLHGtAp0UaDa1iEAl8A6UYt3dkVRbmbPUYaSnclJXhGabfs4D3aueldaNVhIWz8C7FZMjmJXE8Rh4A9B6tJvWWCG8dIyNyJAqt67d_hszcYqpWTY55V4S8-Ugsd0naXO8P9Vd9hSYeYiOIruYjR9XmbmfrFJ_7AjA_YjQH0xcag"
+		}
+	},
+	"request": {
+		"type": "IntentRequest",
+		"requestId": "amzn1.echo-api.request.3e147379-e5c4-41eb-9b53-300d789cb46f",
+		"timestamp": "2018-06-25T17:29:53Z",
+		"locale": "en-US",
+		"intent": {
+			"name": "PlanMyTrip",
+			"confirmationStatus": "NONE",
+			"slots": {
+				"go_synonyms": {
+					"name": "go_synonyms",
+					"confirmationStatus": "NONE"
+				},
+				"places": {
+					"name": "places",
+					"value": "Boston museum",
+					"confirmationStatus": "NONE"
+				},
+				"activity": {
+					"name": "activity",
+					"confirmationStatus": "NONE"
+				},
+				"travelDate": {
+					"name": "travelDate",
+					"value": "2018-06-25",
+					"confirmationStatus": "NONE"
+				},
+				"year": {
+					"name": "year",
+					"value": "2005",
+					"confirmationStatus": "NONE"
+				},
+				"toCity": {
+					"name": "toCity",
+					"value": "Boston",
+					"confirmationStatus": "NONE"
+				},
+				"model": {
+					"name": "model",
+					"value": "Camry",
+					"resolutions": {
+						"resolutionsPerAuthority": [
+							{
+								"authority": "amzn1.er-authority.echo-sdk.amzn1.ask.skill.082194d5-68af-4623-8170-74305f32fe70.model_type",
+								"status": {
+									"code": "ER_SUCCESS_MATCH"
+								},
+								"values": [
+									{
+										"value": {
+											"name": "camry",
+											"id": "172d44edaf0432ddad2e5d31b2e06ec5"
+										}
+									}
+								]
+							}
+						]
+					},
+					"confirmationStatus": "NONE"
+				},
+				"fromCity": {
+					"name": "fromCity",
+					"value": "Dover",
+					"confirmationStatus": "NONE"
+				},
+				"make": {
+					"name": "make",
+					"value": "Toyota",
+					"resolutions": {
+						"resolutionsPerAuthority": [
+							{
+								"authority": "amzn1.er-authority.echo-sdk.amzn1.ask.skill.082194d5-68af-4623-8170-74305f32fe70.make_type",
+								"status": {
+									"code": "ER_SUCCESS_MATCH"
+								},
+								"values": [
+									{
+										"value": {
+											"name": "toyota",
+											"id": "5166fd3fee463b7c9992293e84f098f0"
+										}
+									}
+								]
+							}
+						]
+					},
+					"confirmationStatus": "NONE"
+				}
+			}
+		},
+		"dialogState": "IN_PROGRESS"
+	}
+}
